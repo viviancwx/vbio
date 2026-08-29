@@ -547,7 +547,7 @@ function bioSetName(){
   for(var i=0;i<BIO_ALLOW.length;i++){if(BIO_ALLOW[i].toLowerCase()===v.toLowerCase()){canon=BIO_ALLOW[i];break;}}
   if(!canon){
     var err=document.getElementById("bioNameErr");
-    if(err){err.style.display="block";err.textContent="⚠️ 仅限指定同学使用：Vivian / Sofia / Kevin / Tony";}
+    if(err){err.style.display="block";err.textContent="⚠️ 仅限指定同学使用";}
     return;
   }
   BIO_STUDENT=canon;
