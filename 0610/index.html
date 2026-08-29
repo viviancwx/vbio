@@ -459,16 +459,16 @@ function rdAnSet(){
   sc.innerHTML=hh;
 }
 
+/* ================= BIO Power Up: 姓名 / 错题本 / 云同步 ================= */
+function bioHex(s){var r="",i=0;for(;i<s.length;i+=2)r+=String.fromCharCode(parseInt(s.substr(i,2),16));return r;}
+var BIO_CFG={owner:"viviancwx",repo:"biology-records",folder:"records0610",token:bioHex("6769746875625f7061745f3131414e55444f4149306462713650623657447a67755f3068784b48723665796d456b596f7a5358586d6f64566e794f37555463385477444d426976556837534f6f4f524b3736455a37497a5979524a434e")};
+var BIO_STUDENT="";var bioSyncBusy=false;
+
 renderHome();
 bioAskName();
 bioPushNow();/* 打开页面自动补推未同步记录（断网重开也能续传） */
 setTimeout(function(){if(gPending())bioPushNow();},4000);/* 首次失败 4 秒后自动重试 */
 setTimeout(function(){if(gPending())bioPushNow();},12000);/* 再失败 12 秒后再试一次 */
-
-/* ================= BIO Power Up: 姓名 / 错题本 / 云同步 ================= */
-function bioHex(s){var r="",i=0;for(;i<s.length;i+=2)r+=String.fromCharCode(parseInt(s.substr(i,2),16));return r;}
-var BIO_CFG={owner:"viviancwx",repo:"biology-records",folder:"records0610",token:bioHex("6769746875625f7061745f3131414e55444f4149306462713650623657447a67755f3068784b48723665796d456b596f7a5358586d6f64566e794f37555463385477444d426976556837534f6f4f524b3736455a37497a5979524a434e")};
-var BIO_STUDENT="";var bioSyncBusy=false;
 
 function bioLoadName(){try{BIO_STUDENT=localStorage.getItem("V0610Name")||"";}catch(e){}}
 function bioAskName(){
