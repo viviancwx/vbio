@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Biology Power Up · 老师端</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#f0f5ff;--card:#ffffff;--card2:#e8f0fe;--accent:#1a73e8;--accent2:#0d47a1;--correct:#0f9d58;--wrong:#d93025;--text:#1a1a2e;--muted:#5f6368;--radius:14px;--shadow:0 2px 12px rgba(0,0,0,0.06)}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Microsoft YaHei',Roboto,sans-serif;background:var(--bg);color:var(--text);line-height:1.7;padding:16px;min-height:100vh}
+.container{max-width:1100px;margin:0 auto}
+.header{text-align:center;padding:26px 20px;background:linear-gradient(135deg,#ffffff,#e8f0fe);border-radius:var(--radius);margin-bottom:18px;border:1px solid rgba(26,115,232,0.12);box-shadow:var(--shadow)}
+.header h1{font-size:1.5rem;font-weight:800;color:var(--accent2)}
+.header p{color:var(--muted);font-size:0.85rem;margin-top:4px}
+.card{background:var(--card);border-radius:var(--radius);padding:18px 20px;margin-bottom:14px;border:1px solid rgba(0,0,0,0.06);box-shadow:var(--shadow)}
+.card.err{background:#fce8e6;border-left:4px solid var(--wrong);color:var(--wrong)}
+.gate-card{max-width:340px;margin:6vh auto 0}
+.gate-card h2{color:var(--accent2);font-size:1.1rem;text-align:center;margin-bottom:6px}
+.gate-card p{color:var(--muted);font-size:0.8rem;text-align:center;margin-bottom:14px}
+.gate-card input{width:100%;padding:12px;border:2px solid rgba(26,115,232,0.25);border-radius:10px;font-size:1rem;outline:none}
+.gate-card input:focus{border-color:var(--accent)}
+.toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:14px}
+.btn{padding:9px 18px;border-radius:10px;border:none;font-size:0.85rem;font-weight:600;cursor:pointer;background:var(--accent);color:#fff;box-shadow:0 2px 8px rgba(26,115,232,0.25)}
+.btn.gray{background:#fff;color:var(--text);border:1px solid rgba(0,0,0,0.1);box-shadow:none}
+.btn.gray:hover{background:#f8f9fa}
+.toolbar .cnt{margin-left:auto;color:var(--muted);font-size:0.8rem;font-weight:600}
+.stu-top{display:flex;align-items:center;flex-wrap:wrap;gap:10px}
+.stu-top h3{color:var(--accent2);font-size:1.05rem}
+.stu-top .t{color:var(--muted);font-size:0.72rem}
+.pill{display:inline-block;padding:2px 10px;border-radius:999px;font-size:0.68rem;font-weight:700}
+.pill.good{background:#e6f4ea;color:var(--correct)}
+.pill.mid{background:#fef7e0;color:#e37400}
+.pill.bad{background:#fce8e6;color:var(--wrong)}
+.kpi{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin:12px 0}
+.kpi .it{background:#f8faff;border-radius:10px;padding:10px;border:1px solid rgba(26,115,232,0.08)}
+.kpi .lb{font-size:0.7rem;color:var(--muted);font-weight:600}
+.kpi .vl{font-size:1.05rem;font-weight:700;margin-top:2px}
+.bar-row{display:flex;align-items:center;gap:8px;font-size:0.72rem;margin:4px 0}
+.bar-row .nm{width:46px;color:var(--muted);font-weight:600;flex:none}
+.bar-row .tr{flex:1;height:5px;border-radius:999px;background:#e8eaed;overflow:hidden}
+.bar-row .fl{height:100%;border-radius:999px}
+.bar-row .pc{width:40px;text-align:right;font-weight:700;color:var(--accent2);flex:none}
+.tag{display:inline-block;padding:3px 10px;border-radius:999px;font-size:0.72rem;font-weight:600;margin:3px 4px 3px 0}
+.tag.wk{background:#fce8e6;color:var(--wrong);border:1px solid rgba(217,48,37,0.15)}
+.tag.st{background:#e6f4ea;color:var(--correct);border:1px solid rgba(15,157,88,0.15)}
+.advice{margin-top:10px;padding:12px 14px;background:#f0f7ff;border-radius:10px;border-left:4px solid var(--accent);font-size:0.82rem;color:var(--muted)}
+.advice strong{color:var(--accent2)}
+.expand-btn{margin-top:12px;padding:8px 14px;border-radius:8px;border:1px solid rgba(26,115,232,0.2);background:#fff;color:var(--accent);font-size:0.78rem;font-weight:600;cursor:pointer}
+.expand-btn:hover{background:var(--card2)}
+.wrong-q{padding:12px 14px;background:#f8faff;border:1px solid rgba(26,115,232,0.08);border-radius:10px;margin-bottom:8px}
+.wrong-q .meta{font-size:0.7rem;color:var(--accent);font-weight:700}
+.wrong-q .qtxt{font-size:0.85rem;margin:4px 0 6px}
+.wrong-q .ans{font-size:0.78rem;color:var(--correct);font-weight:600}
+.wrong-q .exp{font-size:0.75rem;color:var(--muted);margin-top:4px}
+table{width:100%;border-collapse:collapse;font-size:0.76rem;margin-top:8px}
+th{text-align:left;padding:6px 8px;color:var(--muted);border-bottom:1px solid #e8eaed}
+td{padding:6px 8px;border-bottom:1px solid #f0f0f0}
+.dd{display:inline-block;padding:1px 8px;border-radius:999px;font-size:0.64rem;font-weight:600}
+.d0{background:#e6f4ea;color:var(--correct)}.d1{background:#fef7e0;color:#e37400}.d2{background:#fce8e6;color:var(--wrong)}
+.empty{text-align:center;padding:50px 20px;color:var(--muted)}
+.empty .big{font-size:1rem;font-weight:700;margin-bottom:6px}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>🧬 Biology Power Up · 老师端</h1>
+    <p>查看每个孩子的答题记录、错题集和复习建议（数据来自云端 biology-records 仓库）</p>
+  </div>
+
+  <div id="gate" class="card gate-card">
+    <h2>🔒 老师入口</h2>
+    <p>请输入管理密码</p>
+    <input id="pwd" type="password" placeholder="管理密码" autocomplete="off">
+    <button class="btn" style="width:100%;margin-top:12px" onclick="login()">进入</button>
+  </div>
+
+  <div id="main" style="display:none">
+    <div class="toolbar">
+      <button class="btn" onclick="loadAll()">🔄 刷新数据</button>
+      <button class="btn gray" onclick="exportCSV()">📥 导出 CSV</button>
+      <span class="cnt" id="count"></span>
+    </div>
+    <div id="studentList"></div>
+  </div>
+</div>
+
+<script>
+/* ======= 配置 ======= */
+function bioHex(s){var r="",i=0;for(;i<s.length;i+=2)r+=String.fromCharCode(parseInt(s.substr(i,2),16));return r;}
+var CFG={
+  owner:"viviancwx",
+  repo:"biology-records",
+  token:bioHex("6769746875625f7061745f3131414e55444f414930666743554573507a49516e695f7467736d45634471476f52526c544b316e6a524a436d504665414778304b784f705454306534426a4f7648324d545052364f3572544f726c6e3738"),
+  password:"VivianBio2026"   /* 老师端管理密码，可在此修改 */
+};
+var AUTH_KEY="bioTeacherOk";
+var students=[];
+
+function login(){
+  var p=document.getElementById("pwd").value;
+  if(p===CFG.password){
+    sessionStorage.setItem(AUTH_KEY,"1");
+    document.getElementById("gate").style.display="none";
+    document.getElementById("main").style.display="block";
+    loadAll();
+  }else{
+    alert("密码不正确");
+  }
+}
+(function init(){
+  if(sessionStorage.getItem(AUTH_KEY)==="1"){
+    document.getElementById("gate").style.display="none";
+    document.getElementById("main").style.display="block";
+    loadAll();
+  }
+})();
+
+/* ======= 读取云端 ======= */
+function gh(path){
+  return fetch("https://api.github.com/repos/"+CFG.owner+"/"+CFG.repo+"/contents/"+path,
+    {headers:{Authorization:"Bearer "+CFG.token,"Accept":"application/vnd.github+json"}})
+    .then(function(r){return r.json().then(function(j){return{ok:r.ok,status:r.status,j:j};});});
+}
+function b64utf8(b64){return decodeURIComponent(escape(atob(b64)));}
+
+function loadAll(){
+  var el=document.getElementById("studentList");
+  el.innerHTML='<div class="card" style="text-align:center;color:var(--muted)">⏳ 正在读取云端记录…</div>';
+  gh("records").then(function(res){
+    if(!res.ok){
+      el.innerHTML='<div class="card empty"><div class="big">📭 还没有任何记录</div><span style="font-size:0.8rem;color:var(--muted)">孩子们用学生版答题后，记录会自动出现在这里。点"刷新数据"再看。</span></div>';
+      return;
+    }
+    var files=(res.j||[]).filter(function(f){return f.name.toLowerCase().endsWith(".json");});
+    return Promise.all(files.map(function(f){
+      return gh("records/"+encodeURIComponent(f.name)).then(function(j){
+        return JSON.parse(b64utf8(j.j.content));
+      }).catch(function(){return null;});
+    }));
+  }).then(function(list){
+    if(!list)return;
+    students=list.filter(Boolean);
+    students.sort(function(a,b){return (b.updated||"").localeCompare(a.updated||"");});
+    document.getElementById("count").textContent="共 "+students.length+" 名学生";
+    renderStudents();
+  }).catch(function(e){
+    el.innerHTML='<div class="card err">⚠️ 读取失败：'+e.message+'<br>请检查网络，或密钥是否仍然有效。</div>';
+  });
+}
+
+/* ======= 汇总展示 ======= */
+function calc(s){
+  var rec=s.records||[];
+  var tC=0,tT=0;
+  rec.forEach(function(r){tC+=r.cr||0;tT+=r.tc||0;});
+  var overall=tT?Math.round(tC/tT*100):0;
+  // 每章最新（按 ch_sub 取最新）再平均
+  var lt={};
+  rec.forEach(function(r){var k=r.ch+"_"+r.sub;if(!lt[k]||new Date(r.d)>new Date(lt[k].d))lt[k]=r;});
+  var ch={};Object.keys(lt).forEach(function(k){var e=lt[k];if(!ch[e.ch])ch[e.ch]={n:0,tp:0};ch[e.ch].n++;ch[e.ch].tp+=e.pct;});
+  var chList=[];
+  Object.keys(ch).forEach(function(c){
+    var v=Math.round(ch[c].tp/ch[c].n);
+    chList.push({key:c,cn:lt[Object.keys(ch).find(function(k){return lt[k].ch===c;})].cn||c,pct:v});
+  });
+  chList.sort(function(a,b){return a.pct-b.pct;});
+  var weak=chList.filter(function(c){return c.pct<60;});
+  var strong=chList.filter(function(c){return c.pct>=80;});
+  var wrong=s.wrong||[];
+  return {rec:rec,tC:tC,tT:tT,overall:overall,chList:chList,weak:weak,strong:strong,wrong:wrong,attempts:rec.length};
+}
+function advice(st){
+  if(!st.attempts)return "还没有答题记录。";
+  var a="";
+  if(st.weak.length){
+    a="📌 <strong>重点复习：</strong>"+st.weak.map(function(c){return c.cn.replace(/^Ch\d+\s*/,"");}).join("、")+"（正确率低于 60%），建议回看课本后再做对应章节的 Review 档。";
+  }else if(st.overall>=80){
+    a="🏆 掌握良好，可挑战 Advanced (A*) 档和结构题。";
+  }else{
+    a="👍 基础不错，保持练习，注意结构题答题关键词。";
+  }
+  a+="<br>📊 共答题 "+st.tT+" 题，正确 "+st.tC+" 题，总正确率 <strong>"+st.overall+"%</strong>；错题本剩 "+st.wrong.length+" 题。";
+  return a;
+}
+function renderStudents(){
+  var el=document.getElementById("studentList");
+  var h="";
+  students.forEach(function(s){
+    var st=calc(s);
+    h+='<div class="card">';
+    h+='<div class="stu-top"><h3>👤 '+esc(s.name||"(未署名)")+'</h3><span class="t">更新：'+esc((s.updated||"").replace("T"," ").slice(0,16))+'</span>';
+    h+='<span class="pill '+(st.overall>=80?'good':st.overall>=60?'mid':'bad')+'">正确率 '+st.overall+'%</span>';
+    h+='<span class="pill '+(st.wrong.length?'bad':'good')+'">错题 '+st.wrong.length+'</span></div>';
+    h+='<div class="kpi">';
+    h+='<div class="it"><div class="lb">作答次数</div><div class="vl">'+st.attempts+'</div></div>';
+    h+='<div class="it"><div class="lb">答题总量</div><div class="vl">'+st.tT+'</div></div>';
+    h+='<div class="it"><div class="lb">答对</div><div class="vl" style="color:var(--correct)">'+st.tC+'</div></div>';
+    h+='<div class="it"><div class="lb">错题本</div><div class="vl" style="color:'+(st.wrong.length?'var(--wrong)':'var(--correct)')+'">'+st.wrong.length+'</div></div>';
+    h+='</div>';
+    if(st.chList.length){
+      h+='<div>';
+      st.chList.forEach(function(c){
+        var col=c.pct>=80?'var(--correct)':c.pct>=60?'#e37400':'var(--wrong)';
+        h+='<div class="bar-row"><span class="nm">'+esc(c.cn.replace(/^Ch\d+\s*/,""))+'</span><span class="tr"><span class="fl" style="width:'+c.pct+'%;background:'+col+'"></span></span><span class="pc" style="color:'+col+'">'+c.pct+'%</span></div>';
+      });
+      h+='</div>';
+    }
+    h+='<div>';
+    st.weak.forEach(function(c){h+='<span class="tag wk">⚠️ '+esc(c.cn)+' '+c.pct+'%</span>';});
+    st.strong.slice(0,4).forEach(function(c){h+='<span class="tag st">💪 '+esc(c.cn)+'</span>';});
+    h+='</div>';
+    h+='<div class="advice">'+advice(st)+'</div>';
+    h+='<button class="expand-btn" onclick="toggle(this)">▸ 查看错题明细与答题历史</button>';
+    h+='<div class="detail" style="display:none;margin-top:12px">';
+    // wrong list
+    if(st.wrong.length){
+      h+='<div style="font-weight:700;color:var(--accent2);font-size:0.85rem;margin:6px 0 8px">❌ 错题本（'+st.wrong.length+' 题）</div>';
+      st.wrong.forEach(function(w){
+        h+='<div class="wrong-q"><div class="meta">'+esc(w.cn||"")+' · '+esc(w.tp||"")+'</div><div class="qtxt">'+esc(w.q||"")+'</div>';
+        h+='<div class="ans">✅ 正确答案：'+String.fromCharCode(65+(w.a||0))+' · '+esc((w.o&&w.o[w.a])||"")+'</div>';
+        if(w.e)h+='<div class="exp">💡 '+esc(w.e)+'</div>';
+        h+='</div>';
+      });
+    }
+    // history table
+    if(st.rec.length){
+      h+='<div style="font-weight:700;color:var(--accent2);font-size:0.85rem;margin:10px 0 6px">📋 答题历史</div><div style="overflow-x:auto"><table><thead><tr><th>时间</th><th>章节</th><th>档位</th><th>得分</th><th>正确率</th></tr></thead><tbody>';
+      st.rec.slice().reverse().forEach(function(r){
+        var df=r.df===0?"d0":r.df===1?"d1":"d2";
+        h+='<tr><td>'+esc(r.d)+'</td><td>'+esc(r.cn)+'</td><td><span class="dd '+df+'">'+esc(r.sn)+'</span></td><td>'+r.cr+'/'+r.tc+'</td><td>'+r.pct+'%</td></tr>';
+      });
+      h+='</tbody></table></div>';
+    }
+    h+='</div>';
+    h+='</div>';
+  });
+  el.innerHTML=h||'<div class="card empty"><div class="big">📭 还没有学生记录</div><span style="font-size:0.8rem;color:var(--muted)">等学生用学生版答题后，这里就会自动出现。</span></div>';
+}
+function esc(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
+function toggle(btn){
+  var d=btn.nextElementSibling;
+  var open=d.style.display!=="none";
+  d.style.display=open?"none":"block";
+  btn.textContent=open?"▸ 查看错题明细与答题历史":"▾ 收起";
+}
+function exportCSV(){
+  var rows=[["学生","时间","章节","档位","得分","正确率"]];
+  students.forEach(function(s){(s.records||[]).forEach(function(r){rows.push([s.name,r.d,r.cn,r.sn,r.cr+"/"+r.tc,r.pct+"%"]);});});
+  var csv=rows.map(function(r){return r.map(function(c){return '"'+String(c).replace(/"/g,'""')+'"';}).join(",");}).join("\r\n");
+  var blob=new Blob(["﻿"+csv],{type:"text/csv;charset=utf-8"});
+  var a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="biology_records.csv";a.click();
+}
+</script>
+</body>
+</html>
