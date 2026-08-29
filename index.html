@@ -533,7 +533,7 @@ function bioAskName(){
   var g=document.getElementById("bioNameGate");
   if(!g){
     g=document.createElement("div");g.id="bioNameGate";
-    g.innerHTML='<div class=bx><h2>🧬 Biology Power Up</h2><p>请输入你的名字（仅限指定同学）<br><span style="font-size:0.72rem">Vivian · Sofia · Kevin · Tony<br>答错的题会自动进错题本，中途退出可续答，记录同步云端</span></p><input id="bioNameInp" maxlength="20" placeholder="请输入你的名字" autocomplete="off"><div id="bioNameErr" style="display:none;color:var(--wrong);font-size:0.8rem;margin-top:10px;text-align:center;font-weight:600"></div><button class="btn bp bio-btn" onclick="bioSetName()">🚀 开始</button></div>';
+    g.innerHTML='<div class=bx><h2>🧬 Biology Power Up</h2><p>请输入你的名字<br><span style="font-size:0.72rem">答错的题会自动进错题本，中途退出可续答，记录同步云端</span></p><input id="bioNameInp" maxlength="20" placeholder="请输入你的名字" autocomplete="off"><div id="bioNameErr" style="display:none;color:var(--wrong);font-size:0.8rem;margin-top:10px;text-align:center;font-weight:600"></div><button class="btn bp bio-btn" onclick="bioSetName()">🚀 开始</button></div>';
     document.body.appendChild(g);
     var inp=document.getElementById("bioNameInp");
     if(inp){inp.focus();inp.addEventListener("keydown",function(e){if(e.key==="Enter")bioSetName();});}
