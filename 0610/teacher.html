@@ -31,6 +31,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Microsoft YaHei',R
 .pill.good{background:#e6f4ea;color:var(--correct)}
 .pill.mid{background:#fef7e0;color:#e37400}
 .pill.bad{background:#fce8e6;color:var(--wrong)}
+.pill.none{background:#f1f3f4;color:var(--muted)}
 .kpi{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin:12px 0}
 .kpi .it{background:#f8faff;border-radius:10px;padding:10px;border:1px solid rgba(26,115,232,0.08)}
 .kpi .lb{font-size:0.7rem;color:var(--muted);font-weight:600}
@@ -96,6 +97,7 @@ var CFG={
   password:"VivianBio2026"   /* 老师端管理密码，可在此修改 */
 };
 var AUTH_KEY="bio0610TeacherOk";
+var ROSTER=["Vivian","Peter","Skylar","Suri","Vicky","Richard","Stanley","William","Simon","Amy","Channy","Diana","Alfie","Zoe","Rico","Sam","Evelyn","Curry","youze Wang"];
 var students=[];
 
 function login(){
@@ -128,25 +130,41 @@ function b64utf8(b64){return decodeURIComponent(escape(atob(b64)));}
 function loadAll(){
   var el=document.getElementById("studentList");
   el.innerHTML='<div class="card" style="text-align:center;color:var(--muted)">⏳ 正在读取云端记录…</div>';
-  gh("records0610").then(function(res){
-    if(!res.ok){
-      el.innerHTML='<div class="card empty"><div class="big">📭 还没有任何记录</div><span style="font-size:0.8rem;color:var(--muted)">孩子们用学生版（0610）答题后，记录会自动出现在这里。点"刷新数据"再看。</span></div>';
-      return;
-    }
-    var files=(res.j||[]).filter(function(f){return f.name.toLowerCase().endsWith(".json");});
-    return Promise.all(files.map(function(f){
-      return gh("records0610/"+encodeURIComponent(f.name)).then(function(j){
-        return JSON.parse(b64utf8(j.j.content));
-      }).catch(function(){return null;});
-    }));
-  }).then(function(list){
-    if(!list)return;
-    students=list.filter(Boolean);
-    students.sort(function(a,b){return (b.updated||"").localeCompare(a.updated||"");});
-    document.getElementById("count").textContent="共 "+students.length+" 名学生";
-    renderStudents();
-  }).catch(function(e){
-    el.innerHTML='<div class="card err">⚠️ 读取失败：'+e.message+'<br>请检查网络，或密钥是否仍然有效。</div>';
+  var pending=ROSTER.length, list=[];
+  var netErr=0, okAny=false;
+  ROSTER.forEach(function(name){
+    gh(CFG.folder+"/"+encodeURIComponent(name)+".json").then(function(res){
+      if(res.ok){
+        try{
+          var s=JSON.parse(b64utf8(res.j.content));
+          if(s&&s.name)list.push(s);
+          else list.push({name:name,records:[],wrong:[],updated:null,note:"文件格式异常"});
+          okAny=true;
+        }catch(e){list.push({name:name,records:[],wrong:[],updated:null,note:"记录解析失败"});}
+      }else if(res.status===404){
+        list.push({name:name,records:[],wrong:[],updated:null}); /* 还没开始答题 */
+      }else if(res.status===401||res.status===403){
+        netErr=2; /* 密钥/权限问题 */
+        list.push({name:name,records:[],wrong:[],updated:null,note:"读取被拒绝（"+res.status+"）"});
+      }else{
+        netErr=1;
+        list.push({name:name,records:[],wrong:[],updated:null,note:"读取失败（"+res.status+"）"});
+      }
+    }).catch(function(){
+      netErr=1;
+      list.push({name:name,records:[],wrong:[],updated:null,note:"网络异常"});
+    }).then(function(){
+      pending--;
+      if(pending===0){
+        students=list;
+        students.sort(function(a,b){return (b.updated||"").localeCompare(a.updated||"");});
+        document.getElementById("count").textContent="共 "+students.length+" 名学生（已答题 "+
+          students.filter(function(s){return s.updated;}).length+" 人）";
+        if(netErr===2)el.innerHTML='<div class="card err">⚠️ 云端读取被拒绝（密钥可能已失效）。<br>请检查 CFG.token 是否仍然有效，或联系管理员更新老师端页面。</div>';
+        else if(netErr===1&&!okAny)el.innerHTML='<div class="card err">⚠️ 网络连接失败，无法读取云端记录。<br>请检查网络后点"刷新数据"重试。</div>';
+        else renderStudents();
+      }
+    });
   });
 }
 
@@ -192,16 +210,21 @@ function renderStudents(){
   var h="";
   students.forEach(function(s){
     var st=calc(s);
+    var started=!!s.updated;
     h+='<div class="card">';
-    h+='<div class="stu-top"><h3>👤 '+esc(s.name||"(未署名)")+'</h3><span class="t">更新：'+esc((s.updated||"").replace("T"," ").slice(0,16))+'</span>';
-    h+='<span class="pill '+(st.overall>=80?'good':st.overall>=60?'mid':'bad')+'">正确率 '+st.overall+'%</span>';
+    h+='<div class="stu-top"><h3>👤 '+esc(s.name||"(未署名)")+'</h3><span class="t">'+
+      (started?('更新：'+esc((s.updated||"").replace("T"," ").slice(0,16))):(esc(s.note||"还没有开始答题"))) +
+      '</span>';
+    h+='<span class="pill '+(started?(st.overall>=80?'good':st.overall>=60?'mid':'bad'):'none')+'">'+(started?('正确率 '+st.overall+'%'):'未开始')+'</span>';
     h+='<span class="pill '+(st.wrong.length?'bad':'good')+'">错题 '+st.wrong.length+'</span></div>';
-    h+='<div class="kpi">';
-    h+='<div class="it"><div class="lb">作答次数</div><div class="vl">'+st.attempts+'</div></div>';
-    h+='<div class="it"><div class="lb">答题总量</div><div class="vl">'+st.tT+'</div></div>';
-    h+='<div class="it"><div class="lb">答对</div><div class="vl" style="color:var(--correct)">'+st.tC+'</div></div>';
-    h+='<div class="it"><div class="lb">错题本</div><div class="vl" style="color:'+(st.wrong.length?'var(--wrong)':'var(--correct)')+'">'+st.wrong.length+'</div></div>';
-    h+='</div>';
+    if(started){
+      h+='<div class="kpi">';
+      h+='<div class="it"><div class="lb">作答次数</div><div class="vl">'+st.attempts+'</div></div>';
+      h+='<div class="it"><div class="lb">答题总量</div><div class="vl">'+st.tT+'</div></div>';
+      h+='<div class="it"><div class="lb">答对</div><div class="vl" style="color:var(--correct)">'+st.tC+'</div></div>';
+      h+='<div class="it"><div class="lb">错题本</div><div class="vl" style="color:'+(st.wrong.length?'var(--wrong)':'var(--correct)')+'">'+st.wrong.length+'</div></div>';
+      h+='</div>';
+    }
     if(st.chList.length){
       h+='<div>';
       st.chList.forEach(function(c){
