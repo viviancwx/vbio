@@ -82,6 +82,7 @@ td{padding:6px 8px;border-bottom:1px solid #f0f0f0}
       <button class="btn gray" onclick="exportCSV()">📥 导出 CSV</button>
       <span class="cnt" id="count"></span>
     </div>
+    <div id="analysisPanel"></div>
     <div id="studentList"></div>
   </div>
 </div>
@@ -162,7 +163,7 @@ function loadAll(){
           students.filter(function(s){return s.updated;}).length+" 人）";
         if(netErr===2)el.innerHTML='<div class="card err">⚠️ 云端读取被拒绝（密钥可能已失效）。<br>请检查 CFG.token 是否仍然有效，或联系管理员更新老师端页面。</div>';
         else if(netErr===1&&!okAny)el.innerHTML='<div class="card err">⚠️ 网络连接失败，无法读取云端记录。<br>请检查网络后点"刷新数据"重试。</div>';
-        else renderStudents();
+        else { renderAnalysis(); renderStudents(); }
       }
     });
   });
@@ -263,6 +264,89 @@ function renderStudents(){
     h+='</div>';
   });
   el.innerHTML=h;
+}
+/* ======= 全班错题分析 · 单元复习重点 ======= */
+function buildAnalysis(){
+  var chInfo={};
+  students.forEach(function(s){
+    var name=s.name||"(未署名)";
+    var st=calc(s);
+    st.chList.forEach(function(c){ /* 每章该生最新正确率 */
+      var k=c.key;
+      if(!chInfo[k])chInfo[k]={name:c.cn,wrongs:{},acc:{sum:0,n:0},wrongCount:0,students:{}};
+      chInfo[k].acc.sum+=c.pct;chInfo[k].acc.n++;
+    });
+    (s.wrong||[]).forEach(function(w){
+      var k=w.ch||w.cn;
+      if(!chInfo[k])chInfo[k]={name:w.cn,wrongs:{},acc:{sum:0,n:0},wrongCount:0,students:{}};
+      var qid=w.id||w.q;
+      if(!chInfo[k].wrongs[qid])chInfo[k].wrongs[qid]={tp:w.tp,q:w.q,o:w.o,a:w.a,e:w.e,who:{}};
+      chInfo[k].wrongs[qid].who[name]=1;
+      chInfo[k].wrongCount++;
+      chInfo[k].students[name]=1;
+    });
+  });
+  var arr=Object.keys(chInfo).map(function(k){
+    var c=chInfo[k];
+    var acc=c.acc.n?Math.round(c.acc.sum/c.acc.n):0;
+    return {
+      key:k,name:c.name,acc:acc,wrongCount:c.wrongCount,studentCount:Object.keys(c.students).length,
+      wrongs:Object.keys(c.wrongs).map(function(q){
+        var w=c.wrongs[q];var who=Object.keys(w.who);
+        return {tp:w.tp,q:w.q,o:w.o,a:w.a,e:w.e,count:who.length,who:who};
+      }).sort(function(a,b){return b.count-a.count;})
+    };
+  });
+  arr.sort(function(a,b){return b.wrongCount-a.wrongCount||a.acc-b.acc;});
+  return arr;
+}
+function renderAnalysis(){
+  var el=document.getElementById("analysisPanel");
+  if(!el)return;
+  var arr=buildAnalysis();
+  if(!arr.length){
+    el.innerHTML='<div class="card" style="padding:16px 20px"><strong style="color:var(--accent2)">📊 全班错题分析 · 单元复习重点</strong><div style="color:var(--muted);font-size:0.82rem;margin-top:4px">学生答题后，这里会自动汇总每个单元的错题与复习重点。</div></div>';
+    return;
+  }
+  var maxW=arr.reduce(function(m,c){return Math.max(m,c.wrongCount);},1);
+  var h='<div class="card"><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">';
+  h+='<h3 style="color:var(--accent2);font-size:1.05rem">📊 全班错题分析 · 单元复习重点</h3>';
+  h+='<span style="margin-left:auto;color:var(--muted);font-size:0.78rem;font-weight:600">'+arr.length+' 个单元 · 按错题数排序 · 点单元看重点</span></div>';
+  h+='<div style="margin-top:10px">';
+  arr.forEach(function(c){
+    var col=c.acc>=80?'var(--correct)':c.acc>=60?'#e37400':'var(--wrong)';
+    var w=Math.max(6,Math.round(c.wrongCount/maxW*100));
+    var sev=c.wrongCount>=5?'bad':c.wrongCount>=2?'mid':'good';
+    h+='<div class="bar-row" style="cursor:pointer;padding:3px 2px" onclick="toggleFocus(this)" title="点击查看该单元复习重点">';
+    h+='<span class="nm" style="width:56px">'+esc(c.name)+'</span>';
+    h+='<span class="tr"><span class="fl" style="width:'+w+'%;background:'+col+'"></span></span>';
+    h+='<span class="pc" style="width:46px;color:'+col+'">'+(c.acc?c.acc+'%':'—')+'</span>';
+    h+='<span class="pill '+sev+'">错 '+c.wrongCount+' · '+c.studentCount+'人</span>';
+    h+='<span style="color:var(--muted);font-size:0.7rem">▸</span>';
+    h+='</div>';
+    h+='<div class="focusDetail" style="display:none;margin:2px 0 10px;padding:10px 12px;background:#f8faff;border:1px solid rgba(26,115,232,0.08);border-radius:10px">';
+    if(c.wrongs.length){
+      h+='<div style="font-weight:700;color:var(--accent2);font-size:0.82rem;margin-bottom:8px">📌 '+esc(c.name)+' · 复习重点（'+c.wrongs.length+' 道错题）</div>';
+      c.wrongs.forEach(function(w){
+        var tag=w.count>=2?'<span class="pill bad">重点 · '+w.count+'人</span>':'<span class="pill none">1人</span>';
+        h+='<div class="wrong-q"><div class="meta">'+esc(w.tp||"")+' '+tag+'</div>';
+        h+='<div class="qtxt">'+esc(w.q)+'</div>';
+        h+='<div class="ans">✅ 正确答案：'+String.fromCharCode(65+(w.a||0))+' · '+esc((w.o&&w.o[w.a])||"")+'</div>';
+        h+='<div class="exp">👥 答错学生：'+esc(w.who.join("、"))+'</div>';
+        if(w.e)h+='<div class="exp">💡 '+esc(w.e)+'</div>';
+        h+='</div>';
+      });
+    }else h+='<div style="color:var(--muted);font-size:0.8rem">暂无错题记录。</div>';
+    h+='</div>';
+  });
+  h+='</div></div>';
+  el.innerHTML=h;
+}
+function toggleFocus(row){
+  var d=row.nextElementSibling;
+  if(!d)return;
+  var open=d.style.display!=="none";
+  d.style.display=open?"none":"block";
 }
 function esc(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
 function toggle(btn){
