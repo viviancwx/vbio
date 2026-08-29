@@ -166,6 +166,7 @@ function renderHome(){
   inChapter=false;
   var pc=document.getElementById("pc");
   var h = '';
+  h += bioResumeBannerHTML();
   // === SUMMARY REVIEW SECTION (always visible) ===
   h += '<div class="sec-title">📊 All Chapters Review <span class="more" style="font-weight:400;cursor:pointer" onclick="updateSummary()">🔄 Refresh</span></div>';
   h += '<div id="summaryPanel"></div>';
@@ -326,6 +327,7 @@ function goHome(){
   document.getElementById("backBtn").classList.add("hd");
   document.getElementById("subTabs").style.display="none";
   document.getElementById("setContent").innerHTML="<div style='text-align:center;padding:40px;color:var(--muted);font-size:0.9rem;'>👆 Click a chapter card above to start practicing<br><span style='font-size:0.8rem;margin-top:8px;display:block;'>Each chapter has multiple question sets</span></div>";
+  bioShowResumeBanner();
   updateSummary();
 }
 
@@ -382,6 +384,8 @@ function rdSet(){
   }
   h+='<div class=br><button class="btn bp" onclick=subSet()>✅ Submit Answers</button><button class="btn bs" onclick=rstSet()>🔄 Reset</button></div>';
   document.getElementById("setContent").innerHTML=h;stTimer();
+  var scEl=document.getElementById("setContent");
+  if(scEl){scEl.onchange=function(){bioSaveProgress();};scEl.oninput=function(){bioSaveProgress();};}
 }
 
 function subSet(){
@@ -404,6 +408,7 @@ function subSet(){
   if(pf)pf.style.width=pct+"%";if(pt)pt.textContent=cr+"/"+mc;if(pp)pp.textContent=pct+"%";
   svH(crCh,crSub,cr,mc,pct);upHomeStats();upChTabs();updateSummary();
   bioCollectWrong(mq);bioPushNow();
+  try{localStorage.removeItem("VBioCur");}catch(e){}
 }
 
 function rstSet(){
@@ -420,6 +425,7 @@ function rstSet(){
   sq.forEach(function(q){var ta=document.getElementById("t_"+q.id);if(ta)ta.value="";var ms=document.getElementById("ms_"+q.id);if(ms)ms.classList.remove("sh");});
   var sn=document.getElementById("sn"),sd=document.getElementById("sd"),pf=document.getElementById("pf"),pt=document.getElementById("pt"),pp=document.getElementById("pp");
   if(sn)sn.textContent="—";if(sd)sd.textContent="Not yet answered";if(pf)pf.style.width="0%";if(pt)pt.textContent="0/"+MC[crSub];if(pp)pp.textContent="0%";
+  try{localStorage.removeItem("VBioCur");}catch(e){}
 }
 
 function gH(){try{return JSON.parse(localStorage.getItem("VBioH3"))||[]}catch(e){return[]}}
@@ -465,15 +471,66 @@ bioAskName();
 /* ================= BIO Power Up: 姓名 / 错题本 / 云同步 ================= */
 function bioHex(s){var r="",i=0;for(;i<s.length;i+=2)r+=String.fromCharCode(parseInt(s.substr(i,2),16));return r;}
 var BIO_CFG={owner:"viviancwx",repo:"biology-records",token:bioHex("6769746875625f7061745f3131414e55444f414930666743554573507a49516e695f7467736d45634471476f52526c544b316e6a524a436d504665414778304b784f705454306534426a4f7648324d545052364f3572544f726c6e3738")};
-var BIO_STUDENT="";var bioSyncBusy=false;
+var BIO_STUDENT="";var bioSyncBusy=false;var BIO_ALLOW=["Vivian","Sofia","Kevin","Tony"];
 
 function bioLoadName(){try{BIO_STUDENT=localStorage.getItem("VBioName")||"";}catch(e){}}
+function bioLoadCur(){try{var c=JSON.parse(localStorage.getItem("VBioCur"));return c&&c.name?c:null;}catch(e){return null;}}
+function bioSaveProgress(){
+  if(!inChapter)return;
+  var ans={},saq={};
+  var rbs=document.querySelectorAll("#setContent input[type=radio]");
+  for(var i=0;i<rbs.length;i++){var r=rbs[i];if(r.checked)ans[r.name]=parseInt(r.value);}
+  var tas=document.querySelectorAll("#setContent textarea");
+  for(var j=0;j<tas.length;j++){var t=tas[j];if(t.value!==undefined)saq[t.id]=t.value;}
+  try{localStorage.setItem("VBioCur",JSON.stringify({name:BIO_STUDENT,ch:crCh,sub:crSub,ans:ans,saq:saq,updated:new Date().toLocaleString("en-GB")}));}catch(e){}
+}
+function bioResumeBannerHTML(){
+  bioLoadName();
+  var cur=bioLoadCur();
+  if(!cur||cur.name!==BIO_STUDENT||!AD[cur.ch]||!AD[cur.ch][cur.sub]||cur.sub==="analysis"||cur.sub==="wrong")return "";
+  var cnm=CN.find(function(c){return c[0]===cur.ch;});
+  var subL={pre:"Preview",basic:"Basic",review:"Review",adv:"Advanced"};
+  var s='<div class="an" style="border-left:4px solid var(--accent);background:var(--panel2);border-radius:10px;padding:14px 16px;margin-bottom:12px;display:flex;align-items:center;gap:12px;flex-wrap:wrap">';
+  s+='<div style="flex:1;min-width:180px"><strong>⏸️ 有未完成的答题</strong><br><span style="font-size:0.82rem;color:var(--muted)">'+(cnm?cnm[1]:cur.ch)+' · '+(subL[cur.sub]||cur.sub)+' · 上次保存：'+(cur.updated||'')+'</span></div>';
+  s+='<button class="btn bp" onclick="bioResume()">▶ 继续上次答题</button>';
+  s+='<button class="btn bs" onclick="bioDiscardCur()">✕ 放弃</button></div>';
+  return s;
+}
+function bioShowResumeBanner(){
+  var pc=document.getElementById("pc");
+  if(!pc)return;
+  var old=document.getElementById("resumeBanner");
+  if(old&&old.parentNode)old.parentNode.removeChild(old);
+  var h=bioResumeBannerHTML();
+  if(!h)return;
+  var d=document.createElement("div");d.id="resumeBanner";d.innerHTML=h;
+  pc.insertBefore(d,pc.firstChild);
+}
+function bioResume(){
+  var cur=bioLoadCur();
+  if(!cur||cur.name!==BIO_STUDENT||!AD[cur.ch]||!AD[cur.ch][cur.sub]||cur.sub==="analysis"||cur.sub==="wrong")return;
+  enterChapter(cur.ch);
+  if(cur.sub!=="pre")sw(cur.sub);
+  var sc=document.getElementById("setContent");
+  if(sc){sc.onchange=function(){bioSaveProgress();};sc.oninput=function(){bioSaveProgress();};}
+  for(var qid in cur.ans){
+    var r=document.querySelector('input[name="'+qid+'"][value="'+cur.ans[qid]+'"]');
+    if(r)r.checked=true;
+    var lb=document.getElementById("l_"+qid+"_"+cur.ans[qid]);
+    if(lb){lb.classList.add("sl");}
+  }
+  for(var tid in cur.saq){
+    var ta=document.getElementById(tid);
+    if(ta)ta.value=cur.saq[tid];
+  }
+}
+function bioDiscardCur(){try{localStorage.removeItem("VBioCur");}catch(e){}renderHome();}
 function bioAskName(){
   bioLoadName();if(BIO_STUDENT)return;
   var g=document.getElementById("bioNameGate");
   if(!g){
     g=document.createElement("div");g.id="bioNameGate";
-    g.innerHTML='<div class=bx><h2>🧬 Biology Power Up</h2><p>请输入你的名字 / 昵称<br><span style="font-size:0.72rem">答错的题会自动进错题本，记录同步到云端</span></p><input id="bioNameInp" maxlength="20" placeholder="例如：李小明" autocomplete="off"><button class="btn bp bio-btn" onclick="bioSetName()">🚀 开始</button></div>';
+    g.innerHTML='<div class=bx><h2>🧬 Biology Power Up</h2><p>请输入你的名字（仅限指定同学）<br><span style="font-size:0.72rem">Vivian · Sofia · Kevin · Tony<br>答错的题会自动进错题本，中途退出可续答，记录同步云端</span></p><input id="bioNameInp" maxlength="20" placeholder="请输入你的名字" autocomplete="off"><div id="bioNameErr" style="display:none;color:var(--wrong);font-size:0.8rem;margin-top:10px;text-align:center;font-weight:600"></div><button class="btn bp bio-btn" onclick="bioSetName()">🚀 开始</button></div>';
     document.body.appendChild(g);
     var inp=document.getElementById("bioNameInp");
     if(inp){inp.focus();inp.addEventListener("keydown",function(e){if(e.key==="Enter")bioSetName();});}
@@ -483,9 +540,17 @@ function bioAskName(){
 function bioSetName(){
   var v=(document.getElementById("bioNameInp").value||"").trim();
   if(!v)return;
-  BIO_STUDENT=v;
-  try{localStorage.setItem("VBioName",v);}catch(e){}
+  var canon=null;
+  for(var i=0;i<BIO_ALLOW.length;i++){if(BIO_ALLOW[i].toLowerCase()===v.toLowerCase()){canon=BIO_ALLOW[i];break;}}
+  if(!canon){
+    var err=document.getElementById("bioNameErr");
+    if(err){err.style.display="block";err.textContent="⚠️ 仅限指定同学使用：Vivian / Sofia / Kevin / Tony";}
+    return;
+  }
+  BIO_STUDENT=canon;
+  try{localStorage.setItem("VBioName",canon);}catch(e){}
   var g=document.getElementById("bioNameGate");if(g)g.style.display="none";
+  renderHome();
   bioPushNow();
 }
 
