@@ -273,6 +273,7 @@ function decWrong(p,id){for(var i=0;i<p.wrong.length;i++){if(p.wrong[i].id===id)
 function wById(id){for(var i=0;i<WORDS.length;i++){if(WORDS[i].id===id)return WORDS[i];}return null;}
 function shuffle(a){for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;}return a;}
 function esc(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
+function grpName(w){return String(w.ch||"").replace(/^Ch\d+\s*/,"");} /* "Ch1 Cells" -> "Cells" */
 
 /* ======= 登录门 ======= */
 function bioLoadName(){BIO_STUDENT=localStorage.getItem(K_NAME)||"";}
@@ -330,7 +331,7 @@ function renderHome(){
   h+='<div class="it"><div class="lb">错词本</div><div class="vl" style="color:'+(wrongN?'var(--wrong)':'var(--correct)')+'">'+wrongN+'</div></div>';
   h+='</div>';
   h+='<div class="btn-row">';
-  h+='<button class="btn" onclick="bmStartStudy()">📖 开始学习</button>';
+  h+='<button class="btn" onclick="bmStudySetup()">📖 开始学习</button>';
   h+='<button class="btn orange" onclick="bmQuizSetup()">📝 Quiz 检测</button>';
   h+='<button class="btn red" onclick="bmWrongBook()">❌ 错词本 ('+wrongN+')</button>';
   h+='<button class="btn gray" onclick="bioPushNow()">🔄 立即同步</button>';
@@ -348,27 +349,54 @@ function renderHome(){
   h+='<p class="small">共 '+WORDS.length+' 个学术词，按 0610 单元分组：</p>';
   h+='<div style="margin-top:8px">';
   for(var i=0;i<GRP.length;i++){
-    var n=WORDS.filter(function(w){return w.ch===GRP[i][1];}).length;
+    var n=WORDS.filter(function(w){return grpName(w)===GRP[i][1];}).length;
     h+='<span class="pill good" style="margin:3px 4px 3px 0;font-size:0.74rem">'+GRP[i][2]+' '+GRP[i][1]+' ('+n+')</span>';
   }
   h+='</div></div>';
   pc.innerHTML=h;
 }
 
-/* ======= 学习（闪卡） ======= */
+/* ======= 学习（闪卡，按单元先后顺序） ======= */
 var bmStudy=null;
-function bmStartStudy(){
+function bmStudySetup(){
+  var p=newDay();
+  var h="";
+  h+='<div class="card"><h3>📖 开始学习</h3>';
+  h+='<p class="small">单词按单元先后顺序学习：先学完 Ch1 再学 Ch2…，不会打乱。</p>';
+  h+='<p class="small" style="margin-top:10px">学习范围：</p><select id="bmSUnit" style="margin-top:6px">';
+  h+='<option value="all">全部单元（按先后顺序）</option>';
+  for(var i=0;i<GRP.length;i++){
+    var nNew=0;
+    for(var j=0;j<WORDS.length;j++){if(grpName(WORDS[j])===GRP[i][1]&&p.learnedIds.indexOf(WORDS[j].id)<0)nNew++;}
+    h+='<option value="'+i+'">'+GRP[i][2]+' '+GRP[i][1]+'（还剩 '+nNew+' 个新词）</option>';
+  }
+  h+='</select>';
+  h+='<div class="btn-row"><button class="btn" onclick="bmStudyGo()">🚀 开始学习</button><button class="btn gray" onclick="renderHome()">返回</button></div>';
+  h+='</div>';
+  document.getElementById("pc").innerHTML=h;
+}
+function bmStudyGo(){
   var p=newDay();var goal=Math.max(1,Math.min(30,parseInt(p.goal)||10));
+  var sel=document.getElementById("bmSUnit");
+  var unit=(sel&&sel.value!=="")?sel.value:"all";
+  var ch=null;
+  if(unit!=="all")ch=GRP[parseInt(unit)][1];
+  /* 新词按单元顺序（WORDS 本身就是按单元排的），不打乱 */
   var newW=[];
-  for(var i=0;i<WORDS.length;i++){if(p.learnedIds.indexOf(WORDS[i].id)<0)newW.push(WORDS[i]);}
+  for(var i=0;i<WORDS.length;i++){var w=WORDS[i];if(ch&&grpName(w)!==ch)continue;if(p.learnedIds.indexOf(w.id)<0)newW.push(w);}
   var take=newW.slice(0,goal);
+  /* 复习错词（限同一单元/全部），按单元顺序排在最后 */
   var review=[];
-  for(var j=0;j<p.wrong.length;j++){var w=wById(p.wrong[j].id);if(w)review.push(w);}
-  var ids={};for(var k=0;k<take.length;k++)ids[take[k].id]=1;
+  for(var k=0;k<p.wrong.length;k++){var rw=wById(p.wrong[k].id);if(rw&&(!ch||grpName(rw)===ch))review.push(rw);}
+  var ids={};for(var m=0;m<take.length;m++)ids[take[m].id]=1;
   review=review.filter(function(w){return !ids[w.id];});
+  review.sort(function(a,b){return WORDS.indexOf(a)-WORDS.indexOf(b);});
   var deck=take.concat(review);
-  shuffle(deck);
-  if(!deck.length){document.getElementById("pc").innerHTML='<div class="card empty"><div class="big">🎉 今天的词都背完啦！</div><span class="small">明天再来，或去 Quiz 检测 / 错词本复习。</span><div class="btn-row"><button class="btn" onclick="renderHome()">返回首页</button></div></div>';return;}
+  if(!deck.length){
+    var msg=(ch?("「"+GRP[parseInt(unit)][2]+" "+ch+"」"):"今天")+"的词都背完啦！";
+    document.getElementById("pc").innerHTML='<div class="card empty"><div class="big">🎉 '+msg+'</div><span class="small">明天再来，或去 Quiz 检测 / 错词本复习。</span><div class="btn-row"><button class="btn" onclick="renderHome()">返回首页</button></div></div>';
+    return;
+  }
   bmStudy={deck:deck,i:0,known:0,unknown:0,flipped:false};
   bmCard();
 }
