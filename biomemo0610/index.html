@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BioMemo-0610 · IGCSE Biology 学术词汇</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#f0f5ff;--card:#ffffff;--card2:#e8f0fe;--accent:#1a73e8;--accent2:#0d47a1;--correct:#0f9d58;--wrong:#d93025;--text:#1a1a2e;--muted:#5f6368;--glow:rgba(26,115,232,0.2);--radius:14px;--shadow:0 2px 12px rgba(0,0,0,0.06)}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Microsoft YaHei',Roboto,sans-serif;background:var(--bg);color:var(--text);line-height:1.7;padding:16px;min-height:100vh}
+.container{max-width:900px;margin:0 auto}
+.header{text-align:center;padding:22px 18px;background:linear-gradient(135deg,#ffffff,#e8f0fe);border-radius:var(--radius);margin-bottom:16px;border:1px solid rgba(26,115,232,0.12);box-shadow:var(--shadow);position:relative}
+.header h1{font-size:1.45rem;font-weight:800;color:var(--accent2)}
+.header p{color:var(--muted);font-size:0.82rem;margin-top:4px}
+.badge{display:inline-block;margin-top:8px;padding:3px 12px;border-radius:999px;background:#e6f4ea;color:var(--correct);font-size:0.72rem;font-weight:700}
+.bio-sync{display:inline-block;margin-top:8px;padding:3px 12px;border-radius:999px;background:#e6f4ea;color:var(--correct);font-size:0.72rem;font-weight:700}
+.bio-sync.off{background:#fce8e6;color:var(--wrong)}
+#pc{padding-bottom:40px}
+.card{background:var(--card);border-radius:var(--radius);padding:18px 20px;margin-bottom:14px;border:1px solid rgba(0,0,0,0.06);box-shadow:var(--shadow)}
+.card h3{color:var(--accent2);font-size:1.02rem;margin-bottom:10px}
+.btn{padding:10px 18px;border-radius:10px;border:none;font-size:0.9rem;font-weight:700;cursor:pointer;background:var(--accent);color:#fff;box-shadow:0 2px 8px rgba(26,115,232,0.25)}
+.btn.gray{background:#fff;color:var(--text);border:1px solid rgba(0,0,0,0.1);box-shadow:none}
+.btn.green{background:var(--correct)}
+.btn.red{background:var(--wrong)}
+.btn.orange{background:#e37400}
+.btn-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+.btn-row .btn{flex:1;min-width:130px}
+.kpi{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin:12px 0}
+.kpi .it{background:#f8faff;border-radius:10px;padding:10px;text-align:center;border:1px solid rgba(26,115,232,0.08)}
+.kpi .lb{font-size:0.7rem;color:var(--muted);font-weight:600}
+.kpi .vl{font-size:1.1rem;font-weight:700;margin-top:2px}
+.pill{display:inline-block;padding:2px 10px;border-radius:999px;font-size:0.68rem;font-weight:700}
+.pill.good{background:#e6f4ea;color:var(--correct)}
+.pill.mid{background:#fef7e0;color:#e37400}
+.pill.bad{background:#fce8e6;color:var(--wrong)}
+.pill.none{background:#f1f3f4;color:var(--muted)}
+#bioNameGate{position:fixed;inset:0;z-index:999;background:rgba(13,71,161,0.94);display:flex;align-items:center;justify-content:center;padding:20px}
+#bioNameGate .bx{background:#fff;border-radius:18px;padding:30px 26px;max-width:380px;width:100%;text-align:center;box-shadow:0 12px 40px rgba(0,0,0,0.3)}
+#bioNameGate h2{color:var(--accent2);font-size:1.15rem;margin-bottom:6px}
+#bioNameGate p{color:var(--muted);font-size:0.8rem;margin-bottom:16px}
+#bioNameGate input{width:100%;padding:12px;border:2px solid rgba(26,115,232,0.25);border-radius:10px;font-size:1rem;outline:none;text-align:center}
+#bioNameGate input:focus{border-color:var(--accent)}
+.bio-btn{width:100%;margin-top:14px}
+select{width:100%;padding:10px;border:2px solid rgba(26,115,232,0.2);border-radius:10px;font-size:0.92rem;background:#fff;color:var(--text);outline:none}
+input[type=number]{width:70px;padding:9px;border:2px solid rgba(26,115,232,0.25);border-radius:10px;font-size:1rem;text-align:center;outline:none}
+.flash{min-height:250px;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;background:#f8faff;border:1px solid rgba(26,115,232,0.12);border-radius:14px;padding:22px;position:relative}
+.flash .term{font-size:2rem;font-weight:800;color:var(--accent2);margin:14px 0}
+.flash .meta{position:absolute;top:12px;left:14px;font-size:0.7rem;color:var(--muted);font-weight:700}
+.flash .prog{position:absolute;top:12px;right:14px;font-size:0.7rem;color:var(--muted);font-weight:700}
+.flash .reveal{font-size:0.95rem;color:var(--text);margin-top:8px;max-width:100%}
+.flash .reveal .cn{font-size:1.4rem;font-weight:800;color:var(--correct)}
+.flash .reveal .def{color:var(--muted);font-size:0.85rem;margin-top:8px}
+.flash .reveal .def b{color:var(--accent2)}
+.opt{display:block;width:100%;padding:12px 14px;margin:8px 0;border:2px solid rgba(26,115,232,0.18);border-radius:10px;background:#fff;font-size:0.95rem;text-align:left;cursor:pointer;color:var(--text)}
+.opt:hover:not(:disabled){border-color:var(--accent);background:var(--card2)}
+.opt.ok{background:#e6f4ea;border-color:var(--correct);color:var(--correct);font-weight:700}
+.opt.no{background:#fce8e6;border-color:var(--wrong);color:var(--wrong)}
+.opt:disabled{cursor:default;opacity:1}
+.wrong-row{display:flex;align-items:center;gap:10px;padding:9px 6px;border-bottom:1px solid #f0f0f0;font-size:0.86rem}
+.wrong-row .w{font-weight:700;color:var(--accent2);min-width:130px}
+.wrong-row .n{margin-left:auto;background:#fce8e6;color:var(--wrong);border-radius:999px;padding:1px 10px;font-size:0.72rem;font-weight:700}
+table{width:100%;border-collapse:collapse;font-size:0.78rem;margin-top:8px}
+th{text-align:left;padding:6px 8px;color:var(--muted);border-bottom:1px solid #e8eaed}
+td{padding:6px 8px;border-bottom:1px solid #f0f0f0}
+.empty{text-align:center;padding:40px 20px;color:var(--muted)}
+.small{font-size:0.75rem;color:var(--muted)}
+.summary{font-size:1rem;color:var(--accent2);font-weight:700;margin:8px 0}
+</style>
+</head>
+<body>
+<div class=container>
+  <div class=header>
+    <h1>🧠 BioMemo-0610</h1>
+    <p>IGCSE Biology 学术词汇 · 中英文释义 · Quiz 检测记忆</p>
+    <div style="margin-top:8px">
+      <span class=badge>✦ 每日背词</span>
+      <span class="bio-sync" id="bioSyncB">☁️ …</span>
+    </div>
+  </div>
+  <div id=pc></div>
+</div>
+
+<script>
+/* ======= 安全 & 云配置（bioHex 混淆，勿改） ======= */
+function bioHex(s){var r="",i=0;for(;i<s.length;i+=2)r+=String.fromCharCode(parseInt(s.substr(i,2),16));return r;}
+var BIO_CFG={owner:"viviancwx",repo:"biology-records",folder:"memo0610",token:bioHex("6769746875625f7061745f3131414e55444f4149306462713650623657447a67755f3068784b48723665796d456b596f7a5358586d6f64566e794f37555463385477444d426976556837534f6f4f524b3736455a37497a5979524a434e")};
+var BIO_STUDENT="";var bioSyncBusy=false;
+var BIO_ALLOW=["Vivian","Peter","Skylar","Suri","Vicky","Richard","Stanley","William","Simon","Amy","Channy","Diana","Alfie","Zoe","Rico","Sam","Evelyn","Curry","youze Wang"];
+
+/* ======= 单词库（0610 大纲 · 14 单元） ======= */
+var WORDS=[
+/* Ch1 细胞 */
+{id:"cell",t:"cell",cn:"细胞",ed:"The basic structural and functional unit of all living organisms.",cd:"所有生物体最基本的结构和功能单位。",ch:"Ch1 Cells"},
+{id:"cell_wall",t:"cell wall",cn:"细胞壁",ed:"A rigid layer made of cellulose around plant cells, giving support.",cd:"植物细胞外围由纤维素构成的坚硬结构，起支持作用。",ch:"Ch1 Cells"},
+{id:"cell_membrane",t:"cell membrane",cn:"细胞膜",ed:"The partially permeable layer around a cell that controls what enters and leaves.",cd:"细胞周围的部分透性膜，控制物质进出。",ch:"Ch1 Cells"},
+{id:"cytoplasm",t:"cytoplasm",cn:"细胞质",ed:"The jelly-like fluid inside a cell where many chemical reactions occur.",cd:"细胞内胶状液体，许多化学反应在此进行。",ch:"Ch1 Cells"},
+{id:"nucleus",t:"nucleus",cn:"细胞核",ed:"The organelle containing DNA that controls the activities of the cell.",cd:"含有DNA、控制细胞活动的细胞器。",ch:"Ch1 Cells"},
+{id:"organelle",t:"organelle",cn:"细胞器",ed:"A specialised structure inside a cell with a particular function.",cd:"细胞内具有特定功能的专门结构。",ch:"Ch1 Cells"},
+{id:"mitochondrion",t:"mitochondrion",cn:"线粒体",ed:"The organelle where aerobic respiration releases energy.",cd:"进行有氧呼吸释放能量的细胞器。",ch:"Ch1 Cells"},
+{id:"chloroplast",t:"chloroplast",cn:"叶绿体",ed:"The organelle in plant cells where photosynthesis takes place.",cd:"植物细胞中进行光合作用的细胞器。",ch:"Ch1 Cells"},
+{id:"ribosome",t:"ribosome",cn:"核糖体",ed:"The small structure on which proteins are synthesised.",cd:"合成蛋白质的小型结构。",ch:"Ch1 Cells"},
+{id:"vacuole",t:"vacuole",cn:"液泡",ed:"A fluid-filled sac in plant cells that stores substances and supports the cell.",cd:"植物细胞中储存物质并起支撑作用的液泡。",ch:"Ch1 Cells"},
+{id:"microscope",t:"microscope",cn:"显微镜",ed:"An instrument used to magnify objects so they can be seen in detail.",cd:"用于放大物体以便仔细观察的仪器。",ch:"Ch1 Cells"},
+{id:"tissue",t:"tissue",cn:"组织",ed:"A group of similar cells working together to carry out a function.",cd:"形态相似、协同完成某一功能的一群细胞。",ch:"Ch1 Cells"},
+{id:"organ",t:"organ",cn:"器官",ed:"A structure made of different tissues working together to perform a function.",cd:"由不同组织协同构成、完成特定功能的结构。",ch:"Ch1 Cells"},
+{id:"magnification",t:"magnification",cn:"放大倍数",ed:"The degree to which an image is enlarged compared with the real object.",cd:"图像相对于实物的放大程度。",ch:"Ch1 Cells"},
+{id:"cell_division",t:"cell division",cn:"细胞分裂",ed:"The process by which a cell divides to produce new cells.",cd:"细胞分裂产生新细胞的过程。",ch:"Ch1 Cells"},
+/* Ch2 进出细胞 */
+{id:"diffusion",t:"diffusion",cn:"扩散",ed:"The net movement of particles from a higher to a lower concentration.",cd:"粒子从高浓度一侧净移动到低浓度一侧的过程。",ch:"Ch2 Movement"},
+{id:"osmosis",t:"osmosis",cn:"渗透",ed:"The net movement of water through a partially permeable membrane from higher to lower water potential.",cd:"水分子经部分透性膜从水势高的一侧净移动到水势低的一侧。",ch:"Ch2 Movement"},
+{id:"active_transport",t:"active transport",cn:"主动运输",ed:"The movement of substances against a concentration gradient, using energy.",cd:"逆浓度梯度、消耗能量的物质运输方式。",ch:"Ch2 Movement"},
+{id:"partial_permeable",t:"partially permeable membrane",cn:"部分透性膜",ed:"A membrane that lets some substances pass through but not others.",cd:"只允许部分物质通过的膜。",ch:"Ch2 Movement"},
+{id:"water_potential",t:"water potential",cn:"水势",ed:"A measure of the tendency of water to move from one place to another.",cd:"衡量水从一处移向另一处趋势大小的量。",ch:"Ch2 Movement"},
+{id:"turgid",t:"turgid",cn:"膨胀的",ed:"The state of a plant cell swollen with water and pressing against its wall.",cd:"植物细胞吸满水、细胞质紧贴细胞壁而膨胀的状态。",ch:"Ch2 Movement"},
+{id:"plasmolysis",t:"plasmolysis",cn:"质壁分离",ed:"Shrinkage of the cytoplasm away from the cell wall as a cell loses water.",cd:"细胞失水时细胞质与细胞壁分离的现象。",ch:"Ch2 Movement"},
+{id:"gradient",t:"concentration gradient",cn:"浓度梯度",ed:"The difference in concentration of a substance between two regions.",cd:"两区域之间某物质浓度的差异。",ch:"Ch2 Movement"},
+{id:"surface_area",t:"surface area",cn:"表面积",ed:"The total area of the outer surface of an object, affecting exchange rates.",cd:"物体外表面的总面积，影响物质交换的速率。",ch:"Ch2 Movement"},
+/* Ch3 酶 */
+{id:"enzyme",t:"enzyme",cn:"酶",ed:"A biological catalyst that speeds up chemical reactions in organisms.",cd:"加快生物体内化学反应的生物催化剂。",ch:"Ch3 Enzymes"},
+{id:"catalyst",t:"catalyst",cn:"催化剂",ed:"A substance that speeds up a reaction without being used up.",cd:"加快反应速率但不被消耗的物质。",ch:"Ch3 Enzymes"},
+{id:"substrate",t:"substrate",cn:"底物",ed:"The substance on which an enzyme acts.",cd:"酶作用的物质。",ch:"Ch3 Enzymes"},
+{id:"active_site",t:"active site",cn:"活性位点",ed:"The region of an enzyme where the substrate binds.",cd:"酶上与底物结合的区域。",ch:"Ch3 Enzymes"},
+{id:"denature",t:"denature",cn:"变性",ed:"A change in the shape of an enzyme's active site so it can no longer work.",cd:"酶活性位点形状改变、从而丧失功能的现象。",ch:"Ch3 Enzymes"},
+{id:"optimum",t:"optimum",cn:"最适条件",ed:"The conditions under which an enzyme works best.",cd:"酶作用效果最佳的温度或酸碱度等条件。",ch:"Ch3 Enzymes"},
+{id:"lock_key",t:"lock and key",cn:"锁钥模型",ed:"A model describing how an enzyme and its substrate fit together specifically.",cd:"描述酶与底物特异性结合的模型。",ch:"Ch3 Enzymes"},
+{id:"specificity",t:"specificity",cn:"专一性",ed:"The property of an enzyme acting on only one substrate or type of reaction.",cd:"酶只对特定底物或某一类反应起作用的特点。",ch:"Ch3 Enzymes"},
+{id:"product",t:"product",cn:"产物",ed:"The substance formed as a result of a reaction.",cd:"化学反应生成的物质。",ch:"Ch3 Enzymes"},
+/* Ch4 植物营养 */
+{id:"photosynthesis",t:"photosynthesis",cn:"光合作用",ed:"The process by which plants make glucose from carbon dioxide and water using light energy.",cd:"植物利用光能，把二氧化碳和水合成葡萄糖的过程。",ch:"Ch4 Plant nutrition"},
+{id:"chlorophyll",t:"chlorophyll",cn:"叶绿素",ed:"The green pigment in chloroplasts that absorbs light energy for photosynthesis.",cd:"叶绿体中吸收光能进行光合作用的绿色色素。",ch:"Ch4 Plant nutrition"},
+{id:"glucose",t:"glucose",cn:"葡萄糖",ed:"A simple sugar produced by photosynthesis, used as an energy source.",cd:"光合作用产生的单糖，用作能量来源。",ch:"Ch4 Plant nutrition"},
+{id:"stomata",t:"stomata",cn:"气孔",ed:"Pores in leaf surfaces, mainly on the lower epidermis, allowing gas exchange.",cd:"叶片表面的小孔，主要分布在下表皮，用于气体交换。",ch:"Ch4 Plant nutrition"},
+{id:"guard_cell",t:"guard cell",cn:"保卫细胞",ed:"The cells that open and close the stomata.",cd:"控制气孔开闭的细胞。",ch:"Ch4 Plant nutrition"},
+{id:"transpiration",t:"transpiration",cn:"蒸腾作用",ed:"The loss of water vapour from a plant, mainly through stomata.",cd:"植物主要通过气孔散失水蒸气的过程。",ch:"Ch4 Plant nutrition"},
+{id:"xylem",t:"xylem",cn:"木质部",ed:"Plant tissue that transports water and mineral ions upwards.",cd:"植物中向上运输水分和矿物质的组织。",ch:"Ch4 Plant nutrition"},
+{id:"phloem",t:"phloem",cn:"韧皮部",ed:"Plant tissue that transports sucrose and amino acids around the plant.",cd:"植物中运输蔗糖和氨基酸的组织。",ch:"Ch4 Plant nutrition"},
+{id:"magnesium",t:"magnesium",cn:"镁",ed:"A mineral needed to make chlorophyll; deficiency causes yellowing leaves.",cd:"合成叶绿素所需的矿物质，缺乏时叶片发黄。",ch:"Ch4 Plant nutrition"},
+{id:"nitrate",t:"nitrate",cn:"硝酸盐",ed:"A mineral that supplies nitrogen for making proteins and growth.",cd:"提供氮素、用于合成蛋白质和生长的矿物质。",ch:"Ch4 Plant nutrition"},
+{id:"deficiency",t:"deficiency",cn:"缺乏",ed:"A lack of a nutrient that causes specific symptoms.",cd:"缺乏某种营养元素而出现的特定症状。",ch:"Ch4 Plant nutrition"},
+{id:"light_intensity",t:"light intensity",cn:"光照强度",ed:"The amount of light energy, a factor affecting the rate of photosynthesis.",cd:"影响光合作用速率的光能强度。",ch:"Ch4 Plant nutrition"},
+/* Ch5 人体营养 */
+{id:"nutrition",t:"nutrition",cn:"营养",ed:"Obtaining food to provide energy and materials for the body.",cd:"获取食物为身体提供能量和物质的过程。",ch:"Ch5 Human nutrition"},
+{id:"ingestion",t:"ingestion",cn:"摄食",ed:"Taking food into the body through the mouth.",cd:"通过口腔把食物摄入体内。",ch:"Ch5 Human nutrition"},
+{id:"digestion",t:"digestion",cn:"消化",ed:"The breakdown of large food molecules into smaller, soluble molecules.",cd:"把大分子食物分解成小分子可溶物质的过程。",ch:"Ch5 Human nutrition"},
+{id:"absorption",t:"absorption",cn:"吸收",ed:"The movement of digested food molecules into the blood.",cd:"消化后的食物分子进入血液的过程。",ch:"Ch5 Human nutrition"},
+{id:"assimilation",t:"assimilation",cn:"同化",ed:"The use of absorbed nutrients by cells for growth and repair.",cd:"细胞利用吸收的营养进行生长和修复的过程。",ch:"Ch5 Human nutrition"},
+{id:"egestion",t:"egestion",cn:"排遗",ed:"The removal of undigested waste from the body.",cd:"把不能消化的废物排出体外的过程。",ch:"Ch5 Human nutrition"},
+{id:"bile",t:"bile",cn:"胆汁",ed:"A liquid made by the liver that helps to digest fats.",cd:"肝脏分泌、帮助消化脂肪的液体。",ch:"Ch5 Human nutrition"},
+{id:"peristalsis",t:"peristalsis",cn:"蠕动",ed:"Wave-like muscular contractions that push food along the gut.",cd:"推动食物沿消化道前进的波浪式肌肉收缩。",ch:"Ch5 Human nutrition"},
+{id:"villus",t:"villus",cn:"绒毛",ed:"Small projections in the small intestine that increase surface area for absorption.",cd:"小肠内增加吸收表面积的小指状突起。",ch:"Ch5 Human nutrition"},
+{id:"balanced_diet",t:"balanced diet",cn:"均衡膳食",ed:"A diet containing all nutrients in the correct amounts.",cd:"包含所有营养素且比例恰当的食物结构。",ch:"Ch5 Human nutrition"},
+{id:"fibre",t:"dietary fibre",cn:"膳食纤维",ed:"Indigestible plant material that helps food move through the gut.",cd:"帮助食物通过肠道的不可消化植物物质。",ch:"Ch5 Human nutrition"},
+{id:"vitamin",t:"vitamin",cn:"维生素",ed:"Organic compounds needed in small amounts for good health.",cd:"维持健康所需、需要量很小的有机化合物。",ch:"Ch5 Human nutrition"},
+/* Ch6 运输 */
+{id:"artery",t:"artery",cn:"动脉",ed:"A thick-walled blood vessel carrying blood away from the heart.",cd:"将血液从心脏送出的厚壁血管。",ch:"Ch6 Transport"},
+{id:"vein",t:"vein",cn:"静脉",ed:"A blood vessel carrying blood back to the heart, containing valves.",cd:"把血液送回心脏、内有瓣膜的血管。",ch:"Ch6 Transport"},
+{id:"capillary",t:"capillary",cn:"毛细血管",ed:"A tiny blood vessel where exchange of substances with cells occurs.",cd:"与细胞进行物质交换的微小血管。",ch:"Ch6 Transport"},
+{id:"plasma",t:"plasma",cn:"血浆",ed:"The liquid part of blood that carries cells and dissolved substances.",cd:"血液中运输细胞和溶解物质的液体部分。",ch:"Ch6 Transport"},
+{id:"rbc",t:"red blood cell",cn:"红细胞",ed:"A blood cell containing haemoglobin that carries oxygen.",cd:"含血红蛋白、运输氧气的血细胞。",ch:"Ch6 Transport"},
+{id:"haemoglobin",t:"haemoglobin",cn:"血红蛋白",ed:"The red pigment in red blood cells that combines with oxygen.",cd:"红细胞中能与氧结合的红色素。",ch:"Ch6 Transport"},
+{id:"wbc",t:"white blood cell",cn:"白细胞",ed:"Blood cells that defend the body against disease.",cd:"抵抗疾病、保护身体的血细胞。",ch:"Ch6 Transport"},
+{id:"platelet",t:"platelet",cn:"血小板",ed:"Small fragments in the blood that help it to clot.",cd:"帮助血液凝固的小细胞碎片。",ch:"Ch6 Transport"},
+{id:"heart",t:"heart",cn:"心脏",ed:"The muscular organ that pumps blood around the body.",cd:"把血液泵送到全身的肌肉器官。",ch:"Ch6 Transport"},
+{id:"atrium",t:"atrium",cn:"心房",ed:"The upper chambers of the heart that receive blood.",cd:"心脏上部接收血液的腔室。",ch:"Ch6 Transport"},
+{id:"ventricle",t:"ventricle",cn:"心室",ed:"The lower chambers of the heart that pump blood out.",cd:"心脏下部把血液泵出的腔室。",ch:"Ch6 Transport"},
+{id:"valve",t:"valve",cn:"瓣膜",ed:"Structures that prevent blood from flowing backwards.",cd:"防止血液倒流的结构。",ch:"Ch6 Transport"},
+{id:"double_circulation",t:"double circulation",cn:"双循环",ed:"The two separate circuits of blood flow: pulmonary and systemic.",cd:"体循环和肺循环两套独立的血液循环。",ch:"Ch6 Transport"},
+/* Ch7 呼吸 */
+{id:"respiration",t:"respiration",cn:"呼吸作用",ed:"The release of energy from glucose inside living cells.",cd:"活细胞中从葡萄糖释放能量的过程。",ch:"Ch7 Respiration"},
+{id:"aerobic",t:"aerobic respiration",cn:"有氧呼吸",ed:"Respiration using oxygen, releasing more energy per glucose molecule.",cd:"利用氧气、每分子葡萄糖释放更多能量的呼吸。",ch:"Ch7 Respiration"},
+{id:"anaerobic",t:"anaerobic respiration",cn:"无氧呼吸",ed:"Respiration without oxygen, releasing less energy.",cd:"不利用氧气、释放较少能量的呼吸。",ch:"Ch7 Respiration"},
+{id:"lactic_acid",t:"lactic acid",cn:"乳酸",ed:"A waste product of anaerobic respiration in muscles.",cd:"肌肉无氧呼吸产生的废物。",ch:"Ch7 Respiration"},
+{id:"oxygen_debt",t:"oxygen debt",cn:"氧债",ed:"The extra oxygen needed after exercise to remove lactic acid.",cd:"运动后清除乳酸所需的额外氧气。",ch:"Ch7 Respiration"},
+{id:"breathing",t:"breathing",cn:"呼吸运动",ed:"The movement of air into and out of the lungs.",cd:"空气进出肺部的运动。",ch:"Ch7 Respiration"},
+{id:"diaphragm",t:"diaphragm",cn:"膈",ed:"A muscular sheet that flattens to draw air into the lungs.",cd:"收缩变平使空气进入肺部的肌肉结构。",ch:"Ch7 Respiration"},
+/* Ch8 气体交换 */
+{id:"gas_exchange",t:"gas exchange",cn:"气体交换",ed:"The exchange of oxygen and carbon dioxide between an organism and its surroundings.",cd:"生物体与环境之间氧气和二氧化碳的交换。",ch:"Ch8 Gas exchange"},
+{id:"alveolus",t:"alveolus",cn:"肺泡",ed:"A tiny air sac in the lungs where gas exchange occurs.",cd:"肺内进行气体交换的微小气囊。",ch:"Ch8 Gas exchange"},
+{id:"trachea",t:"trachea",cn:"气管",ed:"The windpipe that carries air towards the lungs.",cd:"将空气送往肺部的管道。",ch:"Ch8 Gas exchange"},
+{id:"bronchus",t:"bronchus",cn:"支气管",ed:"The main branches of the trachea entering the lungs.",cd:"气管进入肺部的主要分支。",ch:"Ch8 Gas exchange"},
+{id:"bronchiole",t:"bronchiole",cn:"细支气管",ed:"Small air passages in the lungs that end in alveoli.",cd:"肺内末端连肺泡的小气管。",ch:"Ch8 Gas exchange"},
+{id:"inhalation",t:"inhalation",cn:"吸气",ed:"Drawing air into the lungs.",cd:"把空气吸入肺部的过程。",ch:"Ch8 Gas exchange"},
+{id:"exhalation",t:"exhalation",cn:"呼气",ed:"Pushing air out of the lungs.",cd:"把空气排出肺部的过程。",ch:"Ch8 Gas exchange"},
+/* Ch9 排泄 */
+{id:"excretion",t:"excretion",cn:"排泄",ed:"The removal of metabolic waste products from the body.",cd:"把体内代谢废物排出体外的过程。",ch:"Ch9 Excretion"},
+{id:"kidney",t:"kidney",cn:"肾脏",ed:"The organ that filters the blood and produces urine.",cd:"过滤血液、生成尿液的器官。",ch:"Ch9 Excretion"},
+{id:"urea",t:"urea",cn:"尿素",ed:"A nitrogenous waste made by the liver from excess amino acids.",cd:"肝脏分解多余氨基酸产生的含氮废物。",ch:"Ch9 Excretion"},
+{id:"ureter",t:"ureter",cn:"输尿管",ed:"The tube carrying urine from the kidney to the bladder.",cd:"把尿液从肾脏送往膀胱的管道。",ch:"Ch9 Excretion"},
+{id:"bladder",t:"bladder",cn:"膀胱",ed:"The organ that stores urine before it leaves the body.",cd:"储存尿液、待排出体外的器官。",ch:"Ch9 Excretion"},
+{id:"nephron",t:"nephron",cn:"肾单位",ed:"The functional unit of the kidney that filters the blood.",cd:"肾脏中过滤血液的功能单位。",ch:"Ch9 Excretion"},
+{id:"glomerulus",t:"glomerulus",cn:"肾小球",ed:"A knot of capillaries in the kidney where filtration begins.",cd:"肾脏中开始血液过滤的毛细血管球。",ch:"Ch9 Excretion"},
+{id:"ultrafiltration",t:"ultrafiltration",cn:"超滤",ed:"The filtration of blood under pressure in the kidney.",cd:"肾脏中在压力下进行的血液过滤。",ch:"Ch9 Excretion"},
+{id:"reabsorption",t:"reabsorption",cn:"重吸收",ed:"The uptake of useful substances back into the blood in the kidney.",cd:"肾脏中有用物质重新回到血液的过程。",ch:"Ch9 Excretion"},
+{id:"urine",t:"urine",cn:"尿液",ed:"The fluid containing urea and excess water produced by the kidney.",cd:"肾脏产生、含有尿素和多余水分的液体。",ch:"Ch9 Excretion"},
+/* Ch10 协调与反应 */
+{id:"stimulus",t:"stimulus",cn:"刺激",ed:"A change in the environment that causes a response.",cd:"引起机体反应的环境变化。",ch:"Ch10 Coordination"},
+{id:"response",t:"response",cn:"反应",ed:"The action or change produced by an organism in answer to a stimulus.",cd:"生物体对刺激作出的动作或变化。",ch:"Ch10 Coordination"},
+{id:"receptor",t:"receptor",cn:"感受器",ed:"Cells that detect a stimulus.",cd:"探测刺激的细胞。",ch:"Ch10 Coordination"},
+{id:"effector",t:"effector",cn:"效应器",ed:"A muscle or gland that responds to a stimulus.",cd:"对刺激作出反应的肌肉或腺体。",ch:"Ch10 Coordination"},
+{id:"neuron",t:"neuron",cn:"神经元",ed:"A nerve cell that carries electrical impulses.",cd:"传导电冲动的神经细胞。",ch:"Ch10 Coordination"},
+{id:"synapse",t:"synapse",cn:"突触",ed:"The junction between two neurons across which impulses pass.",cd:"两个神经元之间传递冲动的连接处。",ch:"Ch10 Coordination"},
+{id:"reflex",t:"reflex action",cn:"反射",ed:"A rapid, automatic response to a stimulus.",cd:"对刺激作出的快速、自动反应。",ch:"Ch10 Coordination"},
+{id:"reflex_arc",t:"reflex arc",cn:"反射弧",ed:"The pathway of a reflex: receptor → sensory neuron → relay neuron → motor neuron → effector.",cd:"反射的传导路径：感受器→感觉神经元→联络神经元→运动神经元→效应器。",ch:"Ch10 Coordination"},
+{id:"hormone",t:"hormone",cn:"激素",ed:"A chemical messenger made by glands and transported in the blood.",cd:"由腺体产生、经血液运输的化学信使。",ch:"Ch10 Coordination"},
+{id:"insulin",t:"insulin",cn:"胰岛素",ed:"A hormone that lowers the blood glucose level.",cd:"降低血糖水平的激素。",ch:"Ch10 Coordination"},
+{id:"glucagon",t:"glucagon",cn:"胰高血糖素",ed:"A hormone that raises the blood glucose level.",cd:"升高血糖水平的激素。",ch:"Ch10 Coordination"},
+{id:"adrenaline",t:"adrenaline",cn:"肾上腺素",ed:"A hormone that prepares the body for stress or danger.",cd:"使身体进入应激状态的激素。",ch:"Ch10 Coordination"},
+{id:"homeostasis",t:"homeostasis",cn:"稳态",ed:"The maintenance of a constant internal environment.",cd:"维持体内环境相对稳定的过程。",ch:"Ch10 Coordination"},
+{id:"nervous_system",t:"nervous system",cn:"神经系统",ed:"The system of nerves and the brain that coordinates responses.",cd:"由脑和神经组成、协调机体反应的系统。",ch:"Ch10 Coordination"},
+/* Ch11 生殖 */
+{id:"reproduction",t:"reproduction",cn:"生殖",ed:"The production of new individuals of the same species.",cd:"产生同种新个体的过程。",ch:"Ch11 Reproduction"},
+{id:"gamete",t:"gamete",cn:"配子",ed:"A sex cell, such as a sperm or ovum, with half the chromosome number.",cd:"染色体数减半的性细胞，如精子或卵子。",ch:"Ch11 Reproduction"},
+{id:"sperm",t:"sperm",cn:"精子",ed:"The male gamete of animals.",cd:"动物的雄性配子。",ch:"Ch11 Reproduction"},
+{id:"ovum",t:"ovum",cn:"卵子",ed:"The female gamete of animals.",cd:"动物的雌性配子。",ch:"Ch11 Reproduction"},
+{id:"fertilisation",t:"fertilisation",cn:"受精",ed:"The fusion of a male and a female gamete to form a zygote.",cd:"雌雄配子融合形成受精卵的过程。",ch:"Ch11 Reproduction"},
+{id:"zygote",t:"zygote",cn:"受精卵",ed:"The cell formed by the fusion of two gametes.",cd:"两个配子融合形成的细胞。",ch:"Ch11 Reproduction"},
+{id:"pollination",t:"pollination",cn:"传粉",ed:"The transfer of pollen from an anther to a stigma.",cd:"花粉从花药传到柱头的过程。",ch:"Ch11 Reproduction"},
+{id:"germination",t:"germination",cn:"萌发",ed:"The growth of a seed into a new plant.",cd:"种子发育成新植株的过程。",ch:"Ch11 Reproduction"},
+{id:"embryo",t:"embryo",cn:"胚",ed:"The developing young organism before birth or germination.",cd:"出生或萌发前发育中的幼体。",ch:"Ch11 Reproduction"},
+{id:"placenta",t:"placenta",cn:"胎盘",ed:"The organ through which a foetus gets nutrients and oxygen from the mother.",cd:"胎儿从母体获得营养和氧气的器官。",ch:"Ch11 Reproduction"},
+{id:"menstrual_cycle",t:"menstrual cycle",cn:"月经周期",ed:"The monthly cycle of changes in the female reproductive system.",cd:"女性生殖系统每月的周期性变化。",ch:"Ch11 Reproduction"},
+{id:"asexual",t:"asexual reproduction",cn:"无性生殖",ed:"Reproduction involving one parent, producing identical offspring.",cd:"仅由一个亲本产生相同后代的生殖方式。",ch:"Ch11 Reproduction"},
+{id:"sexual",t:"sexual reproduction",cn:"有性生殖",ed:"Reproduction involving two parents and the fusion of gametes.",cd:"由两个亲本通过配子融合进行的生殖。",ch:"Ch11 Reproduction"},
+/* Ch12 遗传 */
+{id:"inheritance",t:"inheritance",cn:"遗传",ed:"The passing of characteristics from parents to offspring.",cd:"亲代把性状传给子代的过程。",ch:"Ch12 Inheritance"},
+{id:"gene",t:"gene",cn:"基因",ed:"A section of DNA that codes for a particular characteristic.",cd:"编码特定性状的一段DNA。",ch:"Ch12 Inheritance"},
+{id:"allele",t:"allele",cn:"等位基因",ed:"A different form of the same gene.",cd:"同一基因的不同形式。",ch:"Ch12 Inheritance"},
+{id:"chromosome",t:"chromosome",cn:"染色体",ed:"A thread-like structure made of DNA that carries genes.",cd:"携带基因的线状DNA结构。",ch:"Ch12 Inheritance"},
+{id:"dna",t:"DNA",cn:"脱氧核糖核酸",ed:"The molecule that carries genetic information.",cd:"携带遗传信息的分子。",ch:"Ch12 Inheritance"},
+{id:"dominant",t:"dominant",cn:"显性",ed:"An allele that is expressed even when paired with a different allele.",cd:"与不同等位基因共存时也能表现出的等位基因。",ch:"Ch12 Inheritance"},
+{id:"recessive",t:"recessive",cn:"隐性",ed:"An allele that is expressed only when two copies are present.",cd:"只有两份都存在时才表现出的等位基因。",ch:"Ch12 Inheritance"},
+{id:"homozygous",t:"homozygous",cn:"纯合",ed:"Having two identical alleles of a gene.",cd:"某一基因的两个等位基因相同。",ch:"Ch12 Inheritance"},
+{id:"heterozygous",t:"heterozygous",cn:"杂合",ed:"Having two different alleles of a gene.",cd:"某一基因的两个等位基因不同。",ch:"Ch12 Inheritance"},
+{id:"genotype",t:"genotype",cn:"基因型",ed:"The genetic makeup of an organism.",cd:"生物体的遗传组成。",ch:"Ch12 Inheritance"},
+{id:"phenotype",t:"phenotype",cn:"表现型",ed:"The observable characteristics of an organism.",cd:"生物体可观察到的性状表现。",ch:"Ch12 Inheritance"},
+{id:"mutation",t:"mutation",cn:"突变",ed:"A change in the genetic material that can cause variation.",cd:"遗传物质的变化，可导致变异。",ch:"Ch12 Inheritance"},
+{id:"variation",t:"variation",cn:"变异",ed:"Differences between individuals of the same species.",cd:"同种生物个体之间的差异。",ch:"Ch12 Inheritance"},
+/* Ch13 生态 */
+{id:"ecosystem",t:"ecosystem",cn:"生态系统",ed:"A community of organisms and the environment in which they live.",cd:"生物群落与其所处环境组成的整体。",ch:"Ch13 Ecology"},
+{id:"habitat",t:"habitat",cn:"栖息地",ed:"The place where an organism lives.",cd:"生物生存的场所。",ch:"Ch13 Ecology"},
+{id:"population",t:"population",cn:"种群",ed:"All organisms of one species living in a habitat at one time.",cd:"同一时间栖息地内某物种的全部个体。",ch:"Ch13 Ecology"},
+{id:"community",t:"community",cn:"群落",ed:"All the populations of different species in a habitat.",cd:"栖息地内所有不同物种的种群总和。",ch:"Ch13 Ecology"},
+{id:"producer",t:"producer",cn:"生产者",ed:"An organism that makes its own food, usually by photosynthesis.",cd:"通过光合作用等自制食物的生物。",ch:"Ch13 Ecology"},
+{id:"consumer",t:"consumer",cn:"消费者",ed:"An organism that gets energy by eating other organisms.",cd:"通过捕食其他生物获得能量的生物。",ch:"Ch13 Ecology"},
+{id:"food_chain",t:"food chain",cn:"食物链",ed:"A sequence showing the transfer of energy from one organism to another.",cd:"能量从一种生物传递给下一种生物的链式顺序。",ch:"Ch13 Ecology"},
+{id:"food_web",t:"food web",cn:"食物网",ed:"Interconnected food chains within an ecosystem.",cd:"生态系统中相互连接的多个食物链。",ch:"Ch13 Ecology"},
+{id:"decomposer",t:"decomposer",cn:"分解者",ed:"Organisms that break down dead matter and release nutrients.",cd:"分解动植物尸体、释放营养物质的生物。",ch:"Ch13 Ecology"},
+{id:"biomass",t:"biomass",cn:"生物量",ed:"The total mass of organisms in a given area.",cd:"某区域内生物的总质量。",ch:"Ch13 Ecology"},
+{id:"carbon_cycle",t:"carbon cycle",cn:"碳循环",ed:"The movement of carbon between organisms and the environment.",cd:"碳在生物体与环境之间循环移动的过程。",ch:"Ch13 Ecology"},
+{id:"predator",t:"predator",cn:"捕食者",ed:"An animal that hunts and eats other animals.",cd:"捕食其他动物的动物。",ch:"Ch13 Ecology"},
+{id:"prey",t:"prey",cn:"猎物",ed:"An animal that is hunted and eaten by another animal.",cd:"被其他动物捕食的动物。",ch:"Ch13 Ecology"},
+/* Ch14 生物技术 */
+{id:"fermentation",t:"fermentation",cn:"发酵",ed:"The anaerobic breakdown of glucose by microorganisms.",cd:"微生物对葡萄糖进行的无氧分解。",ch:"Ch14 Biotechnology"},
+{id:"microorganism",t:"microorganism",cn:"微生物",ed:"A tiny organism such as a bacterium, fungus or virus.",cd:"微小的生物，如细菌、真菌或病毒。",ch:"Ch14 Biotechnology"},
+{id:"genetic_engineering",t:"genetic engineering",cn:"基因工程",ed:"The artificial transfer of genes between organisms.",cd:"人工把基因从一个生物转移到另一个生物的技术。",ch:"Ch14 Biotechnology"},
+{id:"transgenic",t:"transgenic",cn:"转基因",ed:"An organism that contains genes from another species.",cd:"含有其他物种基因的生物体。",ch:"Ch14 Biotechnology"},
+{id:"selective_breeding",t:"selective breeding",cn:"选育",ed:"Choosing organisms with desirable traits to breed together.",cd:"选择具有优良性状的生物进行繁殖。",ch:"Ch14 Biotechnology"},
+{id:"antibiotic",t:"antibiotic",cn:"抗生素",ed:"A substance that kills bacteria or stops them growing.",cd:"能杀死或抑制细菌生长的物质。",ch:"Ch14 Biotechnology"},
+{id:"yeast",t:"yeast",cn:"酵母菌",ed:"A single-celled fungus used in fermentation.",cd:"用于发酵的单细胞真菌。",ch:"Ch14 Biotechnology"}
+];
+var GRP=[["Ch1","Cells","🔬"],["Ch2","Movement","💧"],["Ch3","Enzymes","🧪"],["Ch4","Plant nutrition","🌱"],["Ch5","Human nutrition","🍎"],["Ch6","Transport","❤️"],["Ch7","Respiration","🫁"],["Ch8","Gas exchange","💨"],["Ch9","Excretion","🚰"],["Ch10","Coordination","⚡"],["Ch11","Reproduction","👶"],["Ch12","Inheritance","🧬"],["Ch13","Ecology","🌍"],["Ch14","Biotechnology","🧫"]];
+
+/* ======= 本地状态（localStorage） ======= */
+var K_NAME="BM0610Name",K_GOAL="BM0610Goal",K_P="BM0610Progress",K_PENDING="BM0610Pending";
+function tStr(){var d=new Date();return d.getFullYear()+"-"+("0"+(d.getMonth()+1)).slice(-2)+"-"+("0"+d.getDate()).slice(-2);}
+function defP(){return {name:"",updated:"",goal:10,day:"",todayIds:[],learnedIds:[],quizToday:0,quizTodayC:0,quizTotal:0,quizTotalC:0,wrong:[],history:[]};}
+function gP(){try{var p=JSON.parse(localStorage.getItem(K_P));if(p&&typeof p==="object")return p;}catch(e){}return defP();}
+function sP(p){try{localStorage.setItem(K_P,JSON.stringify(p));}catch(e){}}
+function newDay(){var p=gP();var t=tStr();if(p.day!==t){if(p.day)p.history.push({d:p.day,g:p.goal,l:p.todayIds.length,q:p.quizToday,qc:p.quizTodayC});if(p.history.length>60)p.history.shift();p.day=t;p.todayIds=[];p.quizToday=0;p.quizTodayC=0;sP(p);}return p;}
+function gW(p){return p.wrong;}
+function addWrong(p,id){for(var i=0;i<p.wrong.length;i++){if(p.wrong[i].id===id){p.wrong[i].n++;return;}}p.wrong.push({id:id,n:1});}
+function decWrong(p,id){for(var i=0;i<p.wrong.length;i++){if(p.wrong[i].id===id){p.wrong[i].n--;if(p.wrong[i].n<=0)p.wrong.splice(i,1);return;}}}
+function wById(id){for(var i=0;i<WORDS.length;i++){if(WORDS[i].id===id)return WORDS[i];}return null;}
+function shuffle(a){for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;}return a;}
+function esc(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
+
+/* ======= 登录门 ======= */
+function bioLoadName(){BIO_STUDENT=localStorage.getItem(K_NAME)||"";}
+function bioAskName(){
+  bioLoadName();
+  if(BIO_STUDENT){
+    var inAllow=false;
+    for(var i=0;i<BIO_ALLOW.length;i++){if(BIO_ALLOW[i].toLowerCase()===BIO_STUDENT.toLowerCase()){inAllow=true;break;}}
+    if(inAllow){return;}
+    BIO_STUDENT="";
+    try{localStorage.removeItem(K_NAME);}catch(e){}
+  }
+  var g=document.getElementById("bioNameGate");
+  if(!g){
+    g=document.createElement("div");g.id="bioNameGate";
+    g.innerHTML='<div class=bx><h2>🧠 BioMemo-0610</h2><p>请输入你的名字<br><span style="font-size:0.72rem">每日背词、Quiz 检测，进度同步云端</span></p><input id="bioNameInp" maxlength="20" placeholder="请输入你的名字" autocomplete="off"><div id="bioNameErr" style="display:none;color:var(--wrong);font-size:0.8rem;margin-top:10px;text-align:center;font-weight:600"></div><button class="btn bp bio-btn" onclick="bioSetName()">🚀 开始</button></div>';
+    document.body.appendChild(g);
+    var inp=document.getElementById("bioNameInp");
+    if(inp){inp.focus();inp.addEventListener("keydown",function(e){if(e.key==="Enter")bioSetName();});}
+  }
+  g.style.display="flex";
+}
+function bioSetName(){
+  var v=(document.getElementById("bioNameInp").value||"").trim();
+  if(!v)return;
+  var canon=null;
+  for(var i=0;i<BIO_ALLOW.length;i++){if(BIO_ALLOW[i].toLowerCase()===v.toLowerCase()){canon=BIO_ALLOW[i];break;}}
+  if(!canon){
+    var err=document.getElementById("bioNameErr");
+    if(err){err.style.display="block";err.textContent="⚠️ 仅限指定同学使用";}
+    return;
+  }
+  BIO_STUDENT=canon;
+  try{localStorage.setItem(K_NAME,canon);}catch(e){}
+  var g=document.getElementById("bioNameGate");if(g)g.style.display="none";
+  var p=gP();p.name=canon;sP(p);
+  renderHome();
+  bioPushNow();
+}
+function bioLogout(){BIO_STUDENT="";try{localStorage.removeItem(K_NAME);}catch(e){}renderHome();bioAskName();}
+
+/* ======= 首页 ======= */
+function renderHome(){
+  var pc=document.getElementById("pc");
+  var p=newDay();
+  var goal=Math.max(1,Math.min(30,parseInt(p.goal)||10));
+  var accToday=p.quizToday?(Math.round(p.quizTodayC/p.quizToday*100))+"%":"—";
+  var wrongN=p.wrong.length;
+  var h="";
+  h+='<div class="card"><h3>👋 你好，'+esc(BIO_STUDENT)+'</h3>';
+  h+='<div class="kpi">';
+  h+='<div class="it"><div class="lb">今日已背</div><div class="vl" style="color:var(--accent)">'+p.todayIds.length+'/'+goal+'</div></div>';
+  h+='<div class="it"><div class="lb">累计已背</div><div class="vl">'+p.learnedIds.length+'</div></div>';
+  h+='<div class="it"><div class="lb">今日Quiz</div><div class="vl" style="color:'+(p.quizTodayC>0&&p.quizTodayC/p.quizToday<0.6?'var(--wrong)':'var(--correct)')+'">'+accToday+'</div></div>';
+  h+='<div class="it"><div class="lb">错词本</div><div class="vl" style="color:'+(wrongN?'var(--wrong)':'var(--correct)')+'">'+wrongN+'</div></div>';
+  h+='</div>';
+  h+='<div class="btn-row">';
+  h+='<button class="btn" onclick="bmStartStudy()">📖 开始学习</button>';
+  h+='<button class="btn orange" onclick="bmQuizSetup()">📝 Quiz 检测</button>';
+  h+='<button class="btn red" onclick="bmWrongBook()">❌ 错词本 ('+wrongN+')</button>';
+  h+='<button class="btn gray" onclick="bioPushNow()">🔄 立即同步</button>';
+  h+='</div>';
+  h+='<div class="btn-row"><button class="btn gray" onclick="bioLogout()">🔁 换学生</button></div>';
+  h+='</div>';
+  h+='<div class="card"><h3>🎯 每日目标</h3>';
+  h+='<p class="small">每天想背多少个新词？（1-30）</p>';
+  h+='<div style="display:flex;align-items:center;gap:10px;margin-top:10px">';
+  h+='<input type="number" id="bmGoalInp" min="1" max="30" value="'+goal+'">';
+  h+='<button class="btn gray" onclick="bmSetGoal()">保存</button>';
+  h+='<span class="small" id="goalMsg"></span>';
+  h+='</div></div>';
+  h+='<div class="card"><h3>📚 单词库</h3>';
+  h+='<p class="small">共 '+WORDS.length+' 个学术词，按 0610 单元分组：</p>';
+  h+='<div style="margin-top:8px">';
+  for(var i=0;i<GRP.length;i++){
+    var n=WORDS.filter(function(w){return w.ch===GRP[i][1];}).length;
+    h+='<span class="pill good" style="margin:3px 4px 3px 0;font-size:0.74rem">'+GRP[i][2]+' '+GRP[i][1]+' ('+n+')</span>';
+  }
+  h+='</div></div>';
+  pc.innerHTML=h;
+}
+
+/* ======= 学习（闪卡） ======= */
+var bmStudy=null;
+function bmStartStudy(){
+  var p=newDay();var goal=Math.max(1,Math.min(30,parseInt(p.goal)||10));
+  var newW=[];
+  for(var i=0;i<WORDS.length;i++){if(p.learnedIds.indexOf(WORDS[i].id)<0)newW.push(WORDS[i]);}
+  var take=newW.slice(0,goal);
+  var review=[];
+  for(var j=0;j<p.wrong.length;j++){var w=wById(p.wrong[j].id);if(w)review.push(w);}
+  var ids={};for(var k=0;k<take.length;k++)ids[take[k].id]=1;
+  review=review.filter(function(w){return !ids[w.id];});
+  var deck=take.concat(review);
+  shuffle(deck);
+  if(!deck.length){document.getElementById("pc").innerHTML='<div class="card empty"><div class="big">🎉 今天的词都背完啦！</div><span class="small">明天再来，或去 Quiz 检测 / 错词本复习。</span><div class="btn-row"><button class="btn" onclick="renderHome()">返回首页</button></div></div>';return;}
+  bmStudy={deck:deck,i:0,known:0,unknown:0,flipped:false};
+  bmCard();
+}
+function bmCard(){
+  var s=bmStudy;if(!s)return;
+  var w=s.deck[s.i];
+  var pc=document.getElementById("pc");
+  var h="";
+  h+='<div class="card"><h3>📖 学习闪卡</h3>';
+  h+='<div class="flash">';
+  h+='<span class="meta">'+esc(w.ch)+'</span>';
+  h+='<span class="prog">'+(s.i+1)+'/'+s.deck.length+'</span>';
+  h+='<div class="term">'+esc(w.t)+'</div>';
+  if(s.flipped){
+    h+='<div class="reveal"><div class="cn">'+esc(w.cn)+'</div>';
+    h+='<div class="def">📘 '+esc(w.ed)+'</div>';
+    h+='<div class="def">📖 <b>'+esc(w.cd)+'</b></div></div>';
+    h+='<div class="btn-row" style="margin-top:18px">';
+    h+='<button class="btn green" onclick="bmGrade(true)">✅ 认识</button>';
+    h+='<button class="btn red" onclick="bmGrade(false)">❌ 不认识</button>';
+    h+='</div>';
+  }else{
+    h+='<div class="small" style="margin:6px 0">回忆一下它的中文意思，然后点翻转查看</div>';
+    h+='<div class="btn-row" style="margin-top:18px">';
+    h+='<button class="btn" onclick="bmFlip()">🔄 翻转查看</button>';
+    h+='</div>';
+  }
+  h+='</div></div>';
+  h+='<div class="btn-row"><button class="btn gray" onclick="renderHome()">↩️ 退出学习</button></div>';
+  pc.innerHTML=h;
+}
+function bmFlip(){if(bmStudy)bmStudy.flipped=true;bmCard();}
+function bmGrade(know){
+  var s=bmStudy;if(!s)return;
+  var w=s.deck[s.i];
+  var p=newDay();
+  if(know){
+    if(p.todayIds.indexOf(w.id)<0)p.todayIds.push(w.id);
+    if(p.learnedIds.indexOf(w.id)<0)p.learnedIds.push(w.id);
+    decWrong(p,w.id);
+    s.known++;
+  }else{
+    addWrong(p,w.id);
+    s.unknown++;
+  }
+  sP(p);
+  s.i++;s.flipped=false;
+  if(s.i>=s.deck.length){
+    var pc=document.getElementById("pc");
+    pc.innerHTML='<div class="card"><h3>📖 学习完成</h3><div class="summary">本组 '+s.deck.length+' 张 · 认识 '+s.known+' · 新记错词 '+s.unknown+'</div>';
+    pc.innerHTML+='<div class="btn-row"><button class="btn" onclick="renderHome()">返回首页</button><button class="btn orange" onclick="bmQuizSetup()">马上 Quiz 检测</button></div></div>';
+    bioPushNow();
+    return;
+  }
+  bmCard();
+}
+
+/* ======= Quiz ======= */
+var bmQuiz=null;
+function bmQuizSetup(){
+  var p=newDay();
+  var h="";
+  h+='<div class="card"><h3>📝 Quiz 检测</h3>';
+  h+='<p class="small">选择检测范围：</p><select id="bmQScope" style="margin-top:8px">';
+  h+='<option value="today">本次学习词（今日已背 '+p.todayIds.length+'）</option>';
+  h+='<option value="learned">全部已学词（'+p.learnedIds.length+'）</option>';
+  h+='<option value="wrong">错词本（'+p.wrong.length+'）</option>';
+  h+='<option value="all">全部词库（'+WORDS.length+'）</option>';
+  h+='</select>';
+  h+='<p class="small" style="margin-top:12px">题目数：</p><select id="bmQNum" style="margin-top:8px">';
+  h+='<option value="10">10 题</option><option value="20">20 题</option><option value="0">全部</option>';
+  h+='</select>';
+  h+='<p class="small" style="margin-top:12px">每题的选项方向会随机：英文词→选中文 / 中文→选英文</p>';
+  h+='<div class="btn-row"><button class="btn" onclick="bmQuizGo()">🚀 开始测验</button><button class="btn gray" onclick="renderHome()">返回</button></div>';
+  h+='</div>';
+  document.getElementById("pc").innerHTML=h;
+}
+function bmQuizGo(){
+  var p=newDay();
+  var scope=document.getElementById("bmQScope").value;
+  var qn=parseInt(document.getElementById("bmQNum").value)||10;
+  var pool=[];
+  if(scope==="today")pool=p.todayIds.map(function(id){return wById(id);}).filter(Boolean);
+  else if(scope==="learned")pool=p.learnedIds.map(function(id){return wById(id);}).filter(Boolean);
+  else if(scope==="wrong")pool=p.wrong.map(function(e){return wById(e.id);}).filter(Boolean);
+  else pool=WORDS.slice();
+  shuffle(pool);
+  if(qn>0&&pool.length>qn)pool=pool.slice(0,qn);
+  if(!pool.length){document.getElementById("pc").innerHTML='<div class="card empty"><div class="big">📭 这个范围还没有词</div><div class="btn-row"><button class="btn" onclick="renderHome()">返回首页</button></div></div>';return;}
+  bmQuiz={pool:pool,i:0,total:pool.length,correct:0};
+  bmQuizQ();
+}
+function bmQuizQ(){
+  var q=bmQuiz;if(!q)return;
+  var w=q.pool[q.i];
+  var dir=Math.random()<0.5?"toCN":"toEN";
+  var correct=dir==="toCN"?w.cn:w.t;
+  var opts=[correct];
+  var others=WORDS.filter(function(x){return x.id!==w.id && (dir==="toCN"?x.cn!==correct:x.t!==correct);});
+  shuffle(others);
+  for(var i=0;i<others.length&&opts.length<4;i++){var o=dir==="toCN"?others[i].cn:others[i].t;if(opts.indexOf(o)<0)opts.push(o);}
+  shuffle(opts);
+  var pc=document.getElementById("pc");
+  var h="";
+  h+='<div class="card"><h3>📝 Quiz 检测</h3>';
+  h+='<span class="small">第 '+(q.i+1)+'/'+q.total+' 题 · 当前答对 '+q.correct+'</span>';
+  h+='<div class="flash"><span class="meta">'+esc(w.ch)+'</span>';
+  h+='<div class="term">'+(dir==="toCN"?esc(w.t):esc(w.cn))+'</div>';
+  h+='<div class="small">'+(dir==="toCN"?"请选出它的中文意思":"请选出对应的英文词")+'</div>';
+  h+='<div style="width:100%;margin-top:14px">';
+  for(var k=0;k<opts.length;k++){
+    h+='<button class="opt" data-ok="'+(opts[k]===correct?"1":"0")+'" onclick="bmQuizAnswer(this,'+(opts[k]===correct)+',\''+esc(String(w.id).replace(/'/g,"\\'"))+'\')">'+esc(opts[k])+'</button>';
+  }
+  h+='</div></div></div>';
+  pc.innerHTML=h;
+}
+function bmQuizAnswer(el,isOk,id){
+  var q=bmQuiz;if(!q)return;
+  var pc=document.getElementById("pc");
+  var p=newDay();
+  if(isOk){q.correct++;decWrong(p,id);}
+  else{addWrong(p,id);}
+  p.quizTotal++;p.quizToday++;
+  if(isOk){p.quizTotalC++;p.quizTodayC++;}
+  sP(p);
+  var opts=pc.querySelectorAll(".opt");
+  for(var i=0;i<opts.length;i++){opts[i].disabled=true;if(opts[i].getAttribute("data-ok")==="1")opts[i].className="opt ok";else if(opts[i]!==el)opts[i].className="opt";}
+  if(!isOk)el.className="opt no";
+  var fb=pc.querySelector(".flash");
+  if(fb){fb.insertAdjacentHTML("beforeend",'<div style="margin-top:14px;font-weight:700;color:'+(isOk?'var(--correct)':'var(--wrong)')+'">'+(isOk?"✅ 答对！":"❌ 答错，已记入错词本")+'</div>');}
+  setTimeout(function(){
+    q.i++;
+    if(q.i>=q.total){
+      var acc=q.total?Math.round(q.correct/q.total*100):0;
+      pc.innerHTML='<div class="card"><h3>📝 Quiz 完成</h3><div class="summary">答对 '+q.correct+'/'+q.total+' · 正确率 '+acc+'%</div>';
+      pc.innerHTML+='<div class="btn-row"><button class="btn" onclick="renderHome()">返回首页</button><button class="btn orange" onclick="bmQuizSetup()">再测一次</button></div></div>';
+      bioPushNow();
+    }else{bmQuizQ();}
+  },isOk?450:900);
+}
+
+/* ======= 错词本 ======= */
+function bmWrongBook(){
+  var p=newDay();
+  var pc=document.getElementById("pc");
+  if(!p.wrong.length){pc.innerHTML='<div class="card empty"><div class="big">🎉 错词本是空的</div><span class="small">继续保持！</span><div class="btn-row"><button class="btn" onclick="renderHome()">返回首页</button></div></div>';return;}
+  var h="";
+  h+='<div class="card"><h3>❌ 错词本（'+p.wrong.length+'）</h3>';
+  h+='<p class="small">做错过的词会记在这里，Quiz 答对会减次数，减到 0 自动移出。</p>';
+  for(var i=0;i<p.wrong.length;i++){
+    var w=wById(p.wrong[i].id);if(!w)continue;
+    h+='<div class="wrong-row"><span class="w">'+esc(w.t)+'</span><span class="small" style="color:var(--correct);font-weight:600">'+esc(w.cn)+'</span><span class="n">错 '+p.wrong[i].n+'</span></div>';
+  }
+  h+='<div class="btn-row"><button class="btn orange" onclick="bmQuizGo()">✏️ 再测这些错词</button>';
+  h+='<button class="btn green" onclick="bmStudyWrong()">📖 重学闪卡</button>';
+  h+='<button class="btn gray" onclick="renderHome()">返回</button></div>';
+  h+='</div>';
+  pc.innerHTML=h;
+}
+function bmStudyWrong(){
+  var p=newDay();
+  var deck=p.wrong.map(function(e){return wById(e.id);}).filter(Boolean);
+  shuffle(deck);
+  if(!deck.length){renderHome();return;}
+  bmStudy={deck:deck,i:0,known:0,unknown:0,flipped:false};
+  bmCard();
+}
+
+/* ======= 目标 ======= */
+function bmSetGoal(){
+  var v=parseInt(document.getElementById("bmGoalInp").value)||10;
+  v=Math.max(1,Math.min(30,v));
+  var p=newDay();p.goal=v;sP(p);
+  var msg=document.getElementById("goalMsg");
+  if(msg){msg.textContent="✅ 已保存：每天 "+v+" 个";}
+  renderHome();
+}
+
+/* ======= 云同步（bioHex token + Contents API，与题库 app 同款） ======= */
+function bioSetSync(mode,label){
+  var el=document.getElementById("bioSyncB");if(!el)return;
+  el.className="bio-sync"+(mode==="off"?" off":"");
+  el.textContent="☁️ "+label;
+}
+function gPending(){try{return localStorage.getItem(K_PENDING)==="1";}catch(e){return false;}}
+function bioQueuePending(){try{localStorage.setItem(K_PENDING,"1");}catch(e){}}
+function bioClearPending(){try{localStorage.removeItem(K_PENDING);}catch(e){}}
+function bioPushNow(){
+  if(bioSyncBusy)return;
+  if(!BIO_STUDENT)return;
+  if(BIO_CFG.token==="__BIO_TOKEN__"){bioSetSync("off","未设置");return;}
+  bioSyncBusy=true;
+  var p=newDay();
+  var slug=encodeURIComponent(BIO_STUDENT);
+  var path=BIO_CFG.folder+"/"+slug+".json";
+  var url="https://api.github.com/repos/"+BIO_CFG.owner+"/"+BIO_CFG.repo+"/contents/"+path;
+  var body={name:BIO_STUDENT,updated:new Date().toISOString(),goal:p.goal,
+    learnedToday:p.todayIds.length,quizToday:p.quizToday,quizCorrectToday:p.quizTodayC,
+    totalLearned:p.learnedIds.length,totalQuiz:p.quizTotal,totalQuizCorrect:p.quizTotalC,
+    wrong:p.wrong,history:p.history};
+  var payload={message:"sync "+BIO_STUDENT,content:btoa(unescape(encodeURIComponent(JSON.stringify(body))))};
+  fetch(url,{headers:{Authorization:"Bearer "+BIO_CFG.token,"Accept":"application/vnd.github+json"}})
+    .then(function(r){return r.json().then(function(j){return{status:r.status,j:j};});})
+    .then(function(res){
+      if(res.status===200&&res.j.sha)payload.sha=res.j.sha;
+      return fetch(url,{method:"PUT",headers:{Authorization:"Bearer "+BIO_CFG.token,"Accept":"application/vnd.github+json"},body:JSON.stringify(payload)});
+    })
+    .then(function(r){
+      bioSyncBusy=false;
+      if(r.ok){bioSetSync("on","已同步");bioClearPending();}
+      else{bioSetSync("off","同步失败");bioQueuePending();}
+    })
+    .catch(function(){bioSyncBusy=false;bioSetSync("off","未连接");bioQueuePending();});
+}
+
+/* ======= 启动 ======= */
+renderHome();
+bioAskName();
+bioPushNow();/* 打开页面自动补推未同步记录 */
+setTimeout(function(){if(gPending())bioPushNow();},4000);/* 首次失败 4 秒后重试 */
+setTimeout(function(){if(gPending())bioPushNow();},12000);/* 再失败 12 秒后再试 */
+</script>
+</body>
+</html>
