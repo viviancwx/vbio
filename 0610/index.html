@@ -169,7 +169,7 @@ function renderHome(){
   // === SUMMARY REVIEW SECTION (always visible) ===
   h += '<div class="sec-title">📊 All Chapters Review <span class="more" style="font-weight:400;cursor:pointer" onclick="updateSummary()">🔄 Refresh</span></div>';
   h += '<div id="summaryPanel"></div>';
-  h += '<div class="bio-btn-row"><button class="btn bp" onclick="rdWrongSet()">❌ 我的错题本 ('+(gW().length||0)+')</button><span class="bio-sync" id="bioSyncB">☁️ …</span></div>';
+  h += '<div class="bio-btn-row"><button class="btn bp" onclick="rdWrongSet()">❌ 我的错题本 ('+(gW().length||0)+')</button><button class="btn bs" onclick="bioPushNow()" style="padding:8px 14px">🔄 立即同步</button><span class="bio-sync" id="bioSyncB">☁️ …</span></div>';
 
   // === CHAPTER GRID ===
   h += '<div class="sec-title">📚 Select a Chapter to Start <span class="more">Click a card to enter</span></div>';
@@ -462,6 +462,8 @@ function rdAnSet(){
 renderHome();
 bioAskName();
 bioPushNow();/* 打开页面自动补推未同步记录（断网重开也能续传） */
+setTimeout(function(){if(gPending())bioPushNow();},4000);/* 首次失败 4 秒后自动重试 */
+setTimeout(function(){if(gPending())bioPushNow();},12000);/* 再失败 12 秒后再试一次 */
 
 /* ================= BIO Power Up: 姓名 / 错题本 / 云同步 ================= */
 function bioHex(s){var r="",i=0;for(;i<s.length;i+=2)r+=String.fromCharCode(parseInt(s.substr(i,2),16));return r;}
