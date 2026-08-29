@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Biology Power Up · 老师端</title>
+<title>9700 Biology · 老师端</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 :root{--bg:#f0f5ff;--card:#ffffff;--card2:#e8f0fe;--accent:#1a73e8;--accent2:#0d47a1;--correct:#0f9d58;--wrong:#d93025;--text:#1a1a2e;--muted:#5f6368;--radius:14px;--shadow:0 2px 12px rgba(0,0,0,0.06)}
@@ -31,6 +31,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Microsoft YaHei',R
 .pill.good{background:#e6f4ea;color:var(--correct)}
 .pill.mid{background:#fef7e0;color:#e37400}
 .pill.bad{background:#fce8e6;color:var(--wrong)}
+.pill.none{background:#f1f3f4;color:var(--muted)}
 .kpi{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin:12px 0}
 .kpi .it{background:#f8faff;border-radius:10px;padding:10px;border:1px solid rgba(26,115,232,0.08)}
 .kpi .lb{font-size:0.7rem;color:var(--muted);font-weight:600}
@@ -64,8 +65,8 @@ td{padding:6px 8px;border-bottom:1px solid #f0f0f0}
 <body>
 <div class="container">
   <div class="header">
-    <h1>🧬 Biology Power Up · 老师端</h1>
-    <p>查看每个孩子的答题记录、错题集和复习建议（数据来自云端 biology-records 仓库）</p>
+    <h1>🧬 9700 Biology · 老师端</h1>
+    <p>查看 Vivian / Sofia / Kevin / Tony 的答题记录、错题集和复习建议（数据来自云端 records 文件夹）</p>
   </div>
 
   <div id="gate" class="card gate-card">
@@ -91,10 +92,13 @@ function bioHex(s){var r="",i=0;for(;i<s.length;i+=2)r+=String.fromCharCode(pars
 var CFG={
   owner:"viviancwx",
   repo:"biology-records",
+  folder:"records",
   token:bioHex("6769746875625f7061745f3131414e55444f414930666743554573507a49516e695f7467736d45634471476f52526c544b316e6a524a436d504665414778304b784f705454306534426a4f7648324d545052364f3572544f726c6e3738"),
   password:"VivianBio2026"   /* 老师端管理密码，可在此修改 */
 };
 var AUTH_KEY="bioTeacherOk";
+/* 白名单学生（与 9700 学生端 BIO_ALLOW 一致） */
+var ROSTER=["Vivian","Sofia","Kevin","Tony"];
 var students=[];
 
 function login(){
@@ -116,7 +120,7 @@ function login(){
   }
 })();
 
-/* ======= 读取云端 ======= */
+/* ======= 读取云端：按白名单逐个读取 ======= */
 function gh(path){
   return fetch("https://api.github.com/repos/"+CFG.owner+"/"+CFG.repo+"/contents/"+path,
     {headers:{Authorization:"Bearer "+CFG.token,"Accept":"application/vnd.github+json"}})
@@ -127,25 +131,40 @@ function b64utf8(b64){return decodeURIComponent(escape(atob(b64)));}
 function loadAll(){
   var el=document.getElementById("studentList");
   el.innerHTML='<div class="card" style="text-align:center;color:var(--muted)">⏳ 正在读取云端记录…</div>';
-  gh("records").then(function(res){
-    if(!res.ok){
-      el.innerHTML='<div class="card empty"><div class="big">📭 还没有任何记录</div><span style="font-size:0.8rem;color:var(--muted)">孩子们用学生版答题后，记录会自动出现在这里。点"刷新数据"再看。</span></div>';
-      return;
-    }
-    var files=(res.j||[]).filter(function(f){return f.name.toLowerCase().endsWith(".json");});
-    return Promise.all(files.map(function(f){
-      return gh("records/"+encodeURIComponent(f.name)).then(function(j){
-        return JSON.parse(b64utf8(j.j.content));
-      }).catch(function(){return null;});
-    }));
-  }).then(function(list){
-    if(!list)return;
-    students=list.filter(Boolean);
-    students.sort(function(a,b){return (b.updated||"").localeCompare(a.updated||"");});
-    document.getElementById("count").textContent="共 "+students.length+" 名学生";
-    renderStudents();
-  }).catch(function(e){
-    el.innerHTML='<div class="card err">⚠️ 读取失败：'+e.message+'<br>请检查网络，或密钥是否仍然有效。</div>';
+  var pending=ROSTER.length, list=[];
+  var netErr=0, okAny=false;
+  ROSTER.forEach(function(name){
+    gh(CFG.folder+"/"+encodeURIComponent(name)+".json").then(function(res){
+      if(res.ok){
+        try{
+          var s=JSON.parse(b64utf8(res.j.content));
+          if(s&&s.name)list.push(s);
+          else list.push({name:name,records:[],wrong:[],updated:null,note:"文件格式异常"});
+          okAny=true;
+        }catch(e){list.push({name:name,records:[],wrong:[],updated:null,note:"记录解析失败"});}
+      }else if(res.status===404){
+        list.push({name:name,records:[],wrong:[],updated:null}); /* 还没开始答题 */
+      }else if(res.status===401||res.status===403){
+        netErr=2; /* 密钥/权限问题 */
+        list.push({name:name,records:[],wrong:[],updated:null,note:"读取被拒绝（"+res.status+"）"});
+      }else{
+        netErr=1;
+        list.push({name:name,records:[],wrong:[],updated:null,note:"读取失败（"+res.status+"）"});
+      }
+    }).catch(function(){
+      netErr=1;
+      list.push({name:name,records:[],wrong:[],updated:null,note:"网络异常"});
+    }).then(function(){
+      pending--;
+      if(pending===0){
+        students=list;
+        document.getElementById("count").textContent="共 "+students.length+" 名学生（已答题 "+
+          students.filter(function(s){return s.updated;}).length+" 人）";
+        if(netErr===2)el.innerHTML='<div class="card err">⚠️ 云端读取被拒绝（密钥可能已失效）。<br>请检查 CFG.token 是否仍然有效，或联系管理员更新老师端页面。</div>';
+        else if(netErr===1&&!okAny)el.innerHTML='<div class="card err">⚠️ 网络连接失败，无法读取云端记录。<br>请检查网络后点"刷新数据"重试。</div>';
+        else renderStudents();
+      }
+    });
   });
 }
 
@@ -155,14 +174,16 @@ function calc(s){
   var tC=0,tT=0;
   rec.forEach(function(r){tC+=r.cr||0;tT+=r.tc||0;});
   var overall=tT?Math.round(tC/tT*100):0;
-  // 每章最新（按 ch_sub 取最新）再平均
   var lt={};
   rec.forEach(function(r){var k=r.ch+"_"+r.sub;if(!lt[k]||new Date(r.d)>new Date(lt[k].d))lt[k]=r;});
   var ch={};Object.keys(lt).forEach(function(k){var e=lt[k];if(!ch[e.ch])ch[e.ch]={n:0,tp:0};ch[e.ch].n++;ch[e.ch].tp+=e.pct;});
   var chList=[];
+  var ltKeys=Object.keys(lt);
   Object.keys(ch).forEach(function(c){
     var v=Math.round(ch[c].tp/ch[c].n);
-    chList.push({key:c,cn:lt[Object.keys(ch).find(function(k){return lt[k].ch===c;})].cn||c,pct:v});
+    var firstKey=ltKeys.find(function(k){return lt[k].ch===c;});
+    var first=firstKey?lt[firstKey]:null;
+    chList.push({key:c,cn:(first&&first.cn)||c,pct:v});
   });
   chList.sort(function(a,b){return a.pct-b.pct;});
   var weak=chList.filter(function(c){return c.pct<60;});
@@ -171,7 +192,7 @@ function calc(s){
   return {rec:rec,tC:tC,tT:tT,overall:overall,chList:chList,weak:weak,strong:strong,wrong:wrong,attempts:rec.length};
 }
 function advice(st){
-  if(!st.attempts)return "还没有答题记录。";
+  if(!st.attempts)return "还没有答题记录，等学生用学生版（9700）答完题后自动出现。";
   var a="";
   if(st.weak.length){
     a="📌 <strong>重点复习：</strong>"+st.weak.map(function(c){return c.cn.replace(/^Ch\d+\s*/,"");}).join("、")+"（正确率低于 60%），建议回看课本后再做对应章节的 Review 档。";
@@ -188,54 +209,60 @@ function renderStudents(){
   var h="";
   students.forEach(function(s){
     var st=calc(s);
+    var started=!!s.updated;
     h+='<div class="card">';
-    h+='<div class="stu-top"><h3>👤 '+esc(s.name||"(未署名)")+'</h3><span class="t">更新：'+esc((s.updated||"").replace("T"," ").slice(0,16))+'</span>';
-    h+='<span class="pill '+(st.overall>=80?'good':st.overall>=60?'mid':'bad')+'">正确率 '+st.overall+'%</span>';
+    h+='<div class="stu-top"><h3>👤 '+esc(s.name)+'</h3><span class="t">'+
+      (started?('更新：'+esc((s.updated||"").replace("T"," ").slice(0,16))):(esc(s.note||"还没有开始答题"))) +
+      '</span>';
+    h+='<span class="pill '+(started?(st.overall>=80?'good':st.overall>=60?'mid':'bad'):'none')+'">'+(started?('正确率 '+st.overall+'%'):'未开始')+'</span>';
     h+='<span class="pill '+(st.wrong.length?'bad':'good')+'">错题 '+st.wrong.length+'</span></div>';
-    h+='<div class="kpi">';
-    h+='<div class="it"><div class="lb">作答次数</div><div class="vl">'+st.attempts+'</div></div>';
-    h+='<div class="it"><div class="lb">答题总量</div><div class="vl">'+st.tT+'</div></div>';
-    h+='<div class="it"><div class="lb">答对</div><div class="vl" style="color:var(--correct)">'+st.tC+'</div></div>';
-    h+='<div class="it"><div class="lb">错题本</div><div class="vl" style="color:'+(st.wrong.length?'var(--wrong)':'var(--correct)')+'">'+st.wrong.length+'</div></div>';
-    h+='</div>';
-    if(st.chList.length){
-      h+='<div>';
-      st.chList.forEach(function(c){
-        var col=c.pct>=80?'var(--correct)':c.pct>=60?'#e37400':'var(--wrong)';
-        h+='<div class="bar-row"><span class="nm">'+esc(c.cn.replace(/^Ch\d+\s*/,""))+'</span><span class="tr"><span class="fl" style="width:'+c.pct+'%;background:'+col+'"></span></span><span class="pc" style="color:'+col+'">'+c.pct+'%</span></div>';
-      });
+    if(started){
+      h+='<div class="kpi">';
+      h+='<div class="it"><div class="lb">作答次数</div><div class="vl">'+st.attempts+'</div></div>';
+      h+='<div class="it"><div class="lb">答题总量</div><div class="vl">'+st.tT+'</div></div>';
+      h+='<div class="it"><div class="lb">答对</div><div class="vl" style="color:var(--correct)">'+st.tC+'</div></div>';
+      h+='<div class="it"><div class="lb">错题本</div><div class="vl" style="color:'+(st.wrong.length?'var(--wrong)':'var(--correct)')+'">'+st.wrong.length+'</div></div>';
       h+='</div>';
-    }
-    h+='<div>';
-    st.weak.forEach(function(c){h+='<span class="tag wk">⚠️ '+esc(c.cn)+' '+c.pct+'%</span>';});
-    st.strong.slice(0,4).forEach(function(c){h+='<span class="tag st">💪 '+esc(c.cn)+'</span>';});
-    h+='</div>';
-    h+='<div class="advice">'+advice(st)+'</div>';
-    h+='<button class="expand-btn" onclick="toggle(this)">▸ 查看错题明细与答题历史</button>';
-    h+='<div class="detail" style="display:none;margin-top:12px">';
-    // wrong list
-    if(st.wrong.length){
-      h+='<div style="font-weight:700;color:var(--accent2);font-size:0.85rem;margin:6px 0 8px">❌ 错题本（'+st.wrong.length+' 题）</div>';
-      st.wrong.forEach(function(w){
-        h+='<div class="wrong-q"><div class="meta">'+esc(w.cn||"")+' · '+esc(w.tp||"")+'</div><div class="qtxt">'+esc(w.q||"")+'</div>';
-        h+='<div class="ans">✅ 正确答案：'+String.fromCharCode(65+(w.a||0))+' · '+esc((w.o&&w.o[w.a])||"")+'</div>';
-        if(w.e)h+='<div class="exp">💡 '+esc(w.e)+'</div>';
+      if(st.chList.length){
+        h+='<div>';
+        st.chList.forEach(function(c){
+          var col=c.pct>=80?'var(--correct)':c.pct>=60?'#e37400':'var(--wrong)';
+          h+='<div class="bar-row"><span class="nm">'+esc(c.cn.replace(/^Ch\d+\s*/,""))+'</span><span class="tr"><span class="fl" style="width:'+c.pct+'%;background:'+col+'"></span></span><span class="pc" style="color:'+col+'">'+c.pct+'%</span></div>';
+        });
         h+='</div>';
-      });
+      }
+      h+='<div>';
+      st.weak.forEach(function(c){h+='<span class="tag wk">⚠️ '+esc(c.cn)+' '+c.pct+'%</span>';});
+      st.strong.slice(0,4).forEach(function(c){h+='<span class="tag st">💪 '+esc(c.cn)+'</span>';});
+      h+='</div>';
+      h+='<div class="advice">'+advice(st)+'</div>';
+      h+='<button class="expand-btn" onclick="toggle(this)">▸ 查看错题明细与答题历史</button>';
+      h+='<div class="detail" style="display:none;margin-top:12px">';
+      if(st.wrong.length){
+        h+='<div style="font-weight:700;color:var(--accent2);font-size:0.85rem;margin:6px 0 8px">❌ 错题本（'+st.wrong.length+' 题）</div>';
+        st.wrong.forEach(function(w){
+          h+='<div class="wrong-q"><div class="meta">'+esc(w.cn||"")+' · '+esc(w.tp||"")+'</div><div class="qtxt">'+esc(w.q||"")+'</div>';
+          h+='<div class="ans">✅ 正确答案：'+String.fromCharCode(65+(w.a||0))+' · '+esc((w.o&&w.o[w.a])||"")+'</div>';
+          if(w.e)h+='<div class="exp">💡 '+esc(w.e)+'</div>';
+          h+='</div>';
+        });
+      }
+      if(st.rec.length){
+        h+='<div style="font-weight:700;color:var(--accent2);font-size:0.85rem;margin:10px 0 6px">📋 答题历史</div><div style="overflow-x:auto"><table><thead><tr><th>时间</th><th>章节</th><th>档位</th><th>得分</th><th>正确率</th></tr></thead><tbody>';
+        st.rec.slice().reverse().forEach(function(r){
+          var df=r.df===0?"d0":r.df===1?"d1":"d2";
+          h+='<tr><td>'+esc(r.d)+'</td><td>'+esc(r.cn)+'</td><td><span class="dd '+df+'">'+esc(r.sn)+'</span></td><td>'+r.cr+'/'+r.tc+'</td><td>'+r.pct+'%</td></tr>';
+        });
+        h+='</tbody></table></div>';
+      }
+      h+='</div>';
+    }else{
+      h+='<div class="advice" style="border-left-color:var(--muted);background:#fafbfc">'+
+        (esc(s.note||"学生还未在 9700 学生端开始答题。完成答题后，记录会自动同步到这里。"))+'</div>';
     }
-    // history table
-    if(st.rec.length){
-      h+='<div style="font-weight:700;color:var(--accent2);font-size:0.85rem;margin:10px 0 6px">📋 答题历史</div><div style="overflow-x:auto"><table><thead><tr><th>时间</th><th>章节</th><th>档位</th><th>得分</th><th>正确率</th></tr></thead><tbody>';
-      st.rec.slice().reverse().forEach(function(r){
-        var df=r.df===0?"d0":r.df===1?"d1":"d2";
-        h+='<tr><td>'+esc(r.d)+'</td><td>'+esc(r.cn)+'</td><td><span class="dd '+df+'">'+esc(r.sn)+'</span></td><td>'+r.cr+'/'+r.tc+'</td><td>'+r.pct+'%</td></tr>';
-      });
-      h+='</tbody></table></div>';
-    }
-    h+='</div>';
     h+='</div>';
   });
-  el.innerHTML=h||'<div class="card empty"><div class="big">📭 还没有学生记录</div><span style="font-size:0.8rem;color:var(--muted)">等学生用学生版答题后，这里就会自动出现。</span></div>';
+  el.innerHTML=h;
 }
 function esc(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
 function toggle(btn){
@@ -249,7 +276,7 @@ function exportCSV(){
   students.forEach(function(s){(s.records||[]).forEach(function(r){rows.push([s.name,r.d,r.cn,r.sn,r.cr+"/"+r.tc,r.pct+"%"]);});});
   var csv=rows.map(function(r){return r.map(function(c){return '"'+String(c).replace(/"/g,'""')+'"';}).join(",");}).join("\r\n");
   var blob=new Blob(["﻿"+csv],{type:"text/csv;charset=utf-8"});
-  var a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="biology_records.csv";a.click();
+  var a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="biology_9700_records.csv";a.click();
 }
 </script>
 </body>
