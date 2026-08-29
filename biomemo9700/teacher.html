@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BioMemo9700 · 老师端</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#f2f7f0;--card:#ffffff;--card2:#e4f2e8;--accent:#0f766e;--accent2:#134e4a;--correct:#0f9d58;--wrong:#d93025;--text:#1a1a2e;--muted:#5f6368;--radius:14px;--shadow:0 2px 12px rgba(0,0,0,0.06)}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Microsoft YaHei',Roboto,sans-serif;background:var(--bg);color:var(--text);line-height:1.7;padding:16px;min-height:100vh}
+.container{max-width:1100px;margin:0 auto}
+.header{text-align:center;padding:26px 20px;background:linear-gradient(135deg,#ffffff,#e8f0fe);border-radius:var(--radius);margin-bottom:18px;border:1px solid rgba(15,118,110,0.12);box-shadow:var(--shadow)}
+.header h1{font-size:1.5rem;font-weight:800;color:var(--accent2)}
+.header p{color:var(--muted);font-size:0.85rem;margin-top:4px}
+.card{background:var(--card);border-radius:var(--radius);padding:18px 20px;margin-bottom:14px;border:1px solid rgba(0,0,0,0.06);box-shadow:var(--shadow)}
+.card.err{background:#fce8e6;border-left:4px solid var(--wrong);color:var(--wrong)}
+.gate-card{max-width:340px;margin:6vh auto 0}
+.gate-card h2{color:var(--accent2);font-size:1.1rem;text-align:center;margin-bottom:6px}
+.gate-card p{color:var(--muted);font-size:0.8rem;text-align:center;margin-bottom:14px}
+.gate-card input{width:100%;padding:12px;border:2px solid rgba(15,118,110,0.25);border-radius:10px;font-size:1rem;outline:none}
+.gate-card input:focus{border-color:var(--accent)}
+.toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:14px}
+.btn{padding:9px 18px;border-radius:10px;border:none;font-size:0.85rem;font-weight:600;cursor:pointer;background:var(--accent);color:#fff;box-shadow:0 2px 8px rgba(15,118,110,0.25)}
+.btn.gray{background:#fff;color:var(--text);border:1px solid rgba(0,0,0,0.1);box-shadow:none}
+.btn.gray:hover{background:#f8f9fa}
+.toolbar .cnt{margin-left:auto;color:var(--muted);font-size:0.8rem;font-weight:600}
+.stu-top{display:flex;align-items:center;flex-wrap:wrap;gap:10px}
+.stu-top h3{color:var(--accent2);font-size:1.05rem}
+.stu-top .t{color:var(--muted);font-size:0.72rem}
+.pill{display:inline-block;padding:2px 10px;border-radius:999px;font-size:0.68rem;font-weight:700}
+.pill.good{background:#e6f4ea;color:var(--correct)}
+.pill.mid{background:#fef7e0;color:#e37400}
+.pill.bad{background:#fce8e6;color:var(--wrong)}
+.pill.none{background:#f1f3f4;color:var(--muted)}
+.kpi{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin:12px 0}
+.kpi .it{background:#f5f9f3;border-radius:10px;padding:10px;border:1px solid rgba(15,118,110,0.08)}
+.kpi .lb{font-size:0.7rem;color:var(--muted);font-weight:600}
+.kpi .vl{font-size:1.05rem;font-weight:700;margin-top:2px}
+.expand-btn{margin-top:12px;padding:8px 14px;border-radius:8px;border:1px solid rgba(15,118,110,0.2);background:#fff;color:var(--accent);font-size:0.78rem;font-weight:600;cursor:pointer}
+.expand-btn:hover{background:var(--card2)}
+.wrong-q{padding:10px 14px;background:#f5f9f3;border:1px solid rgba(15,118,110,0.08);border-radius:10px;margin-bottom:8px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.wrong-q .w{font-weight:700;color:var(--accent2);min-width:120px}
+.wrong-q .c{color:var(--correct);font-size:0.82rem}
+.wrong-q .n{margin-left:auto;background:#fce8e6;color:var(--wrong);border-radius:999px;padding:1px 10px;font-size:0.72rem;font-weight:700}
+table{width:100%;border-collapse:collapse;font-size:0.76rem;margin-top:8px}
+th{text-align:left;padding:6px 8px;color:var(--muted);border-bottom:1px solid #e8eaed}
+td{padding:6px 8px;border-bottom:1px solid #f0f0f0}
+.dd{display:inline-block;padding:1px 8px;border-radius:999px;font-size:0.64rem;font-weight:600}
+.d0{background:#e6f4ea;color:var(--correct)}.d1{background:#fef7e0;color:#e37400}.d2{background:#fce8e6;color:var(--wrong)}
+.empty{text-align:center;padding:50px 20px;color:var(--muted)}
+.empty .big{font-size:1rem;font-weight:700;margin-bottom:6px}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>🧠 BioMemo9700 · 老师端</h1>
+    <p>查看每个孩子的背词进度、错词明细和每日记录（数据来自云端 memo9700 文件夹）</p>
+  </div>
+
+  <div id="gate" class="card gate-card">
+    <h2>🔒 老师入口</h2>
+    <p>请输入管理密码</p>
+    <input id="pwd" type="password" placeholder="管理密码" autocomplete="off">
+    <button class="btn" style="width:100%;margin-top:12px" onclick="login()">进入</button>
+  </div>
+
+  <div id="main" style="display:none">
+    <div class="toolbar">
+      <button class="btn" onclick="loadAll()">🔄 刷新数据</button>
+      <button class="btn gray" onclick="exportCSV()">📥 导出 CSV</button>
+      <span class="cnt" id="count"></span>
+    </div>
+    <div id="studentList"></div>
+  </div>
+</div>
+
+<script>
+/* ======= 配置 ======= */
+function bioHex(s){var r="",i=0;for(;i<s.length;i+=2)r+=String.fromCharCode(parseInt(s.substr(i,2),16));return r;}
+var CFG={
+  owner:"viviancwx",
+  repo:"biology-records",
+  folder:"memo9700",
+  token:bioHex("6769746875625f7061745f3131414e55444f4149306462713650623657447a67755f3068784b48723665796d456b596f7a5358586d6f64566e794f37555463385477444d426976556837534f6f4f524b3736455a37497a5979524a434e"),
+  password:"VivianBio2026"   /* 老师端管理密码，可在此修改 */
+};
+var AUTH_KEY="bioMemo9700TeacherOk";
+var ROSTER=["Vivian","Sofia","Kevin","Tony"];
+var students=[];
+
+/* ======= 词表（id -> [英文, 中文]），用于错词明细 ======= */
+var WD={
+  "cell":["cell","细胞"],
+  "nucleus":["nucleus","细胞核"],
+  "nucleolus":["nucleolus","核仁"],
+  "nuclear_envelope":["nuclear envelope","核膜"],
+  "nuclear_pore":["nuclear pore","核孔"],
+  "ribosome":["ribosome","核糖体"],
+  "rough_er":["rough endoplasmic reticulum","粗糙内质网"],
+  "smooth_er":["smooth endoplasmic reticulum","光滑内质网"],
+  "golgi_body":["Golgi body","高尔基体"],
+  "lysosome":["lysosome","溶酶体"],
+  "mitochondrion":["mitochondrion","线粒体"],
+  "crista":["crista","嵴"],
+  "matrix":["matrix","基质"],
+  "chloroplast":["chloroplast","叶绿体"],
+  "thylakoid":["thylakoid","类囊体"],
+  "granum":["granum","基粒"],
+  "stroma":["stroma","基质"],
+  "cell_wall":["cell wall","细胞壁"],
+  "plasmodesmata":["plasmodesmata","胞间连丝"],
+  "vacuole":["vacuole","液泡"],
+  "tonoplast":["tonoplast","液泡膜"],
+  "cytoplasm":["cytoplasm","细胞质"],
+  "cytoskeleton":["cytoskeleton","细胞骨架"],
+  "centriole":["centriole","中心粒"],
+  "cilia":["cilia","纤毛"],
+  "flagellum":["flagellum","鞭毛"],
+  "prokaryotic":["prokaryotic","原核的"],
+  "eukaryotic":["eukaryotic","真核的"],
+  "bacterium":["bacterium","细菌"],
+  "plasmid":["plasmid","质粒"],
+  "capsule":["capsule","荚膜"],
+  "pili":["pili","菌毛"],
+  "magnification":["magnification","放大倍数"],
+  "resolution":["resolution","分辨率"],
+  "electron_microscope":["electron microscope","电子显微镜"],
+  "water":["water","水"],
+  "hydrogen_bond":["hydrogen bond","氢键"],
+  "cohesion":["cohesion","内聚力"],
+  "solvent":["solvent","溶剂"],
+  "monosaccharide":["monosaccharide","单糖"],
+  "glucose":["glucose","葡萄糖"],
+  "disaccharide":["disaccharide","双糖"],
+  "sucrose":["sucrose","蔗糖"],
+  "maltose":["maltose","麦芽糖"],
+  "polysaccharide":["polysaccharide","多糖"],
+  "starch":["starch","淀粉"],
+  "glycogen":["glycogen","糖原"],
+  "cellulose":["cellulose","纤维素"],
+  "amino_acid":["amino acid","氨基酸"],
+  "peptide_bond":["peptide bond","肽键"],
+  "dipeptide":["dipeptide","二肽"],
+  "polypeptide":["polypeptide","多肽"],
+  "protein":["protein","蛋白质"],
+  "primary_structure":["primary structure","一级结构"],
+  "secondary_structure":["secondary structure","二级结构"],
+  "tertiary_structure":["tertiary structure","三级结构"],
+  "quaternary_structure":["quaternary structure","四级结构"],
+  "globular_protein":["globular protein","球状蛋白"],
+  "fibrous_protein":["fibrous protein","纤维状蛋白"],
+  "lipid":["lipid","脂质"],
+  "triglyceride":["triglyceride","甘油三酯"],
+  "fatty_acid":["fatty acid","脂肪酸"],
+  "glycerol":["glycerol","甘油"],
+  "phospholipid":["phospholipid","磷脂"],
+  "hydrophilic":["hydrophilic","亲水的"],
+  "hydrophobic":["hydrophobic","疏水的"],
+  "ester_bond":["ester bond","酯键"],
+  "condensation":["condensation","缩合"],
+  "hydrolysis":["hydrolysis","水解"],
+  "reducing_sugar":["reducing sugar","还原糖"],
+  "benedict":["Benedict's solution","本尼迪克特试剂"],
+  "biuret_reagent":["Biuret reagent","双缩脲试剂"],
+  "emulsion_test":["emulsion test","乳化实验"],
+  "enzyme":["enzyme","酶"],
+  "catalyst":["catalyst","催化剂"],
+  "active_site":["active site","活性位点"],
+  "substrate":["substrate","底物"],
+  "product":["product","产物"],
+  "activation_energy":["activation energy","活化能"],
+  "induced_fit":["induced fit","诱导契合模型"],
+  "enzyme_substrate_complex":["enzyme–substrate complex","酶–底物复合物"],
+  "enzyme_inhibitor":["enzyme inhibitor","酶抑制剂"],
+  "competitive_inhibitor":["competitive inhibitor","竞争性抑制剂"],
+  "non_competitive_inhibitor":["non-competitive inhibitor","非竞争性抑制剂"],
+  "cofactor":["cofactor","辅因子"],
+  "coenzyme":["coenzyme","辅酶"],
+  "prosthetic_group":["prosthetic group","辅基"],
+  "optimum":["optimum","最适条件"],
+  "denaturation":["denaturation","变性"],
+  "vmax":["Vmax","最大反应速率"],
+  "immobilised_enzyme":["immobilised enzyme","固定化酶"],
+  "amylase":["amylase","淀粉酶"],
+  "catalase":["catalase","过氧化氢酶"],
+  "protease":["protease","蛋白酶"],
+  "lipase":["lipase","脂肪酶"],
+  "lactase":["lactase","乳糖酶"],
+  "temperature_coefficient":["temperature coefficient (Q10)","温度系数"],
+  "phospholipid_bilayer":["phospholipid bilayer","磷脂双分子层"],
+  "fluid_mosaic":["fluid mosaic model","流体镶嵌模型"],
+  "intrinsic_protein":["intrinsic protein","内在蛋白"],
+  "extrinsic_protein":["extrinsic protein","外在蛋白"],
+  "glycoprotein":["glycoprotein","糖蛋白"],
+  "glycolipid":["glycolipid","糖脂"],
+  "cholesterol":["cholesterol","胆固醇"],
+  "channel_protein":["channel protein","通道蛋白"],
+  "carrier_protein":["carrier protein","载体蛋白"],
+  "receptor":["receptor","受体"],
+  "diffusion":["diffusion","扩散"],
+  "facilitated_diffusion":["facilitated diffusion","易化扩散"],
+  "osmosis":["osmosis","渗透"],
+  "water_potential":["water potential","水势"],
+  "active_transport":["active transport","主动运输"],
+  "endocytosis":["endocytosis","胞吞"],
+  "exocytosis":["exocytosis","胞吐"],
+  "phagocytosis":["phagocytosis","吞噬作用"],
+  "pinocytosis":["pinocytosis","胞饮作用"],
+  "vesicle":["vesicle","囊泡"],
+  "surface_volume_ratio":["surface area to volume ratio","表面积与体积比"],
+  "concentration_gradient":["concentration gradient","浓度梯度"],
+  "turgid":["turgid","膨胀的"],
+  "plasmolysis":["plasmolysis","质壁分离"],
+  "saturation":["saturation","饱和"],
+  "cell_cycle":["cell cycle","细胞周期"],
+  "interphase":["interphase","分裂间期"],
+  "mitosis":["mitosis","有丝分裂"],
+  "prophase":["prophase","前期"],
+  "metaphase":["metaphase","中期"],
+  "anaphase":["anaphase","后期"],
+  "telophase":["telophase","末期"],
+  "cytokinesis":["cytokinesis","胞质分裂"],
+  "chromosome":["chromosome","染色体"],
+  "chromatid":["chromatid","染色单体"],
+  "centromere":["centromere","着丝粒"],
+  "spindle_fibre":["spindle fibre","纺锤丝"],
+  "homologous_pair":["homologous pair","同源染色体"],
+  "sister_chromatid":["sister chromatid","姐妹染色单体"],
+  "replication":["replication","复制"],
+  "s_phase":["S phase","S期"],
+  "cancer":["cancer","癌症"],
+  "tumour":["tumour","肿瘤"],
+  "daughter_cell":["daughter cell","子细胞"],
+  "genetically_identical":["genetically identical","遗传相同的"],
+  "growth":["growth","生长"],
+  "repair":["repair","修复"],
+  "nucleic_acid":["nucleic acid","核酸"],
+  "nucleotide":["nucleotide","核苷酸"],
+  "deoxyribose":["deoxyribose","脱氧核糖"],
+  "ribose":["ribose","核糖"],
+  "phosphate_group":["phosphate group","磷酸基团"],
+  "nitrogenous_base":["nitrogenous base","含氮碱基"],
+  "adenine":["adenine","腺嘌呤"],
+  "guanine":["guanine","鸟嘌呤"],
+  "cytosine":["cytosine","胞嘧啶"],
+  "thymine":["thymine","胸腺嘧啶"],
+  "uracil":["uracil","尿嘧啶"],
+  "complementary_base_pairing":["complementary base pairing","碱基互补配对"],
+  "double_helix":["double helix","双螺旋"],
+  "dna_polymerase":["DNA polymerase","DNA聚合酶"],
+  "transcription":["transcription","转录"],
+  "translation":["translation","翻译"],
+  "messenger_rna":["messenger RNA","信使RNA"],
+  "transfer_rna":["transfer RNA","转运RNA"],
+  "ribosomal_rna":["ribosomal RNA","核糖体RNA"],
+  "codon":["codon","密码子"],
+  "anticodon":["anticodon","反密码子"],
+  "gene":["gene","基因"],
+  "triplet_code":["triplet code","三联体密码"],
+  "degenerate_code":["degenerate code","简并密码"],
+  "stop_codon":["stop codon","终止密码子"],
+  "mutation":["mutation","突变"],
+  "base_substitution":["base substitution","碱基替换"],
+  "frameshift":["frameshift mutation","移码突变"],
+  "xylem":["xylem","木质部"],
+  "phloem":["phloem","韧皮部"],
+  "vascular_bundle":["vascular bundle","维管束"],
+  "transpiration":["transpiration","蒸腾作用"],
+  "transpiration_stream":["transpiration stream","蒸腾流"],
+  "cohesion_tension":["cohesion–tension theory","内聚–张力理论"],
+  "root_hair_cell":["root hair cell","根毛细胞"],
+  "stomata":["stomata","气孔"],
+  "guard_cell":["guard cell","保卫细胞"],
+  "cuticle":["cuticle","角质层"],
+  "palisade_mesophyll":["palisade mesophyll","栅栏组织"],
+  "spongy_mesophyll":["spongy mesophyll","海绵组织"],
+  "evaporation":["evaporation","蒸发"],
+  "sieve_tube":["sieve tube","筛管"],
+  "companion_cell":["companion cell","伴胞"],
+  "sieve_plate":["sieve plate","筛板"],
+  "translocation":["translocation","转运作用"],
+  "source":["source","源"],
+  "sink":["sink","库"],
+  "mass_flow":["mass flow","集流"],
+  "lignified":["lignified","木质化的"],
+  "mineral_ions":["mineral ions","矿质离子"],
+  "active_uptake":["active uptake","主动吸收"],
+  "water_potential_gradient":["water potential gradient","水势梯度"],
+  "circulatory_system":["circulatory system","循环系统"],
+  "double_circulation":["double circulation","双循环"],
+  "atrium":["atrium","心房"],
+  "ventricle":["ventricle","心室"],
+  "septum":["septum","室间隔"],
+  "atrioventricular_valve":["atrioventricular valve","房室瓣"],
+  "semilunar_valve":["semilunar valve","半月瓣"],
+  "aorta":["aorta","主动脉"],
+  "vena_cava":["vena cava","腔静脉"],
+  "pulmonary_artery":["pulmonary artery","肺动脉"],
+  "pulmonary_vein":["pulmonary vein","肺静脉"],
+  "coronary_artery":["coronary artery","冠状动脉"],
+  "artery":["artery","动脉"],
+  "vein":["vein","静脉"],
+  "capillary":["capillary","毛细血管"],
+  "lumen":["lumen","管腔"],
+  "elastic_fibres":["elastic fibres","弹性纤维"],
+  "smooth_muscle":["smooth muscle","平滑肌"],
+  "endothelium":["endothelium","内皮"],
+  "red_blood_cell":["red blood cell","红细胞"],
+  "haemoglobin":["haemoglobin","血红蛋白"],
+  "platelet":["platelet","血小板"],
+  "plasma":["plasma","血浆"],
+  "tissue_fluid":["tissue fluid","组织液"],
+  "lymph":["lymph","淋巴"],
+  "cardiac_cycle":["cardiac cycle","心动周期"],
+  "systole":["systole","收缩期"],
+  "diastole":["diastole","舒张期"],
+  "gas_exchange":["gas exchange","气体交换"],
+  "alveolus":["alveolus","肺泡"],
+  "surfactant":["surfactant","表面活性物质"],
+  "ventilation":["ventilation","通气"],
+  "inspiration":["inspiration","吸气"],
+  "expiration":["expiration","呼气"],
+  "intercostal_muscle":["intercostal muscle","肋间肌"],
+  "diaphragm":["diaphragm","膈"],
+  "trachea":["trachea","气管"],
+  "bronchus":["bronchus","支气管"],
+  "bronchiole":["bronchiole","细支气管"],
+  "pleural_membrane":["pleural membrane","胸膜"],
+  "tidal_volume":["tidal volume","潮气量"],
+  "vital_capacity":["vital capacity","肺活量"],
+  "spirometer":["spirometer","肺活量计"],
+  "smoking":["smoking","吸烟"],
+  "tar":["tar","焦油"],
+  "nicotine":["nicotine","尼古丁"],
+  "carbon_monoxide":["carbon monoxide","一氧化碳"],
+  "carcinogen":["carcinogen","致癌物"],
+  "emphysema":["emphysema","肺气肿"],
+  "chronic_bronchitis":["chronic bronchitis","慢性支气管炎"],
+  "ciliated_epithelium":["ciliated epithelium","纤毛上皮"],
+  "goblet_cell":["goblet cell","杯状细胞"],
+  "mucus":["mucus","黏液"],
+  "partial_pressure":["partial pressure","分压"],
+  "pathogen":["pathogen","病原体"],
+  "bacteria":["bacteria","细菌"],
+  "virus":["virus","病毒"],
+  "fungus":["fungus","真菌"],
+  "protozoan":["protozoan","原生动物"],
+  "transmission":["transmission","传播"],
+  "droplet_infection":["droplet infection","飞沫感染"],
+  "vector":["vector","传播媒介"],
+  "contaminated":["contaminated","受污染的"],
+  "antibiotics":["antibiotics","抗生素"],
+  "antibiotic_resistance":["antibiotic resistance","抗生素耐药性"],
+  "mrsa":["MRSA","耐甲氧西林金黄色葡萄球菌"],
+  "penicillin":["penicillin","青霉素"],
+  "epidemic":["epidemic","流行病"],
+  "pandemic":["pandemic","大流行"],
+  "cholera":["cholera","霍乱"],
+  "tuberculosis":["tuberculosis","结核病"],
+  "hiv":["HIV","人类免疫缺陷病毒"],
+  "aids":["AIDS","艾滋病"],
+  "malaria":["malaria","疟疾"],
+  "vaccination":["vaccination","接种疫苗"],
+  "hygiene":["hygiene","卫生"],
+  "quarantine":["quarantine","隔离检疫"],
+  "antiviral":["antiviral drug","抗病毒药物"],
+  "immune_system":["immune system","免疫系统"],
+  "phagocyte":["phagocyte","吞噬细胞"],
+  "antigen":["antigen","抗原"],
+  "antibody":["antibody","抗体"],
+  "lymphocyte":["lymphocyte","淋巴细胞"],
+  "b_cell":["B cell","B细胞"],
+  "t_cell":["T cell","T细胞"],
+  "plasma_cell":["plasma cell","浆细胞"],
+  "memory_cell":["memory cell","记忆细胞"],
+  "agglutination":["agglutination","凝集"],
+  "antigen_antibody_complex":["antigen–antibody complex","抗原–抗体复合物"],
+  "active_immunity":["active immunity","主动免疫"],
+  "passive_immunity":["passive immunity","被动免疫"],
+  "natural_immunity":["natural immunity","天然免疫"],
+  "artificial_immunity":["artificial immunity","人工免疫"],
+  "vaccine":["vaccine","疫苗"],
+  "herd_immunity":["herd immunity","群体免疫"],
+  "monoclonal_antibody":["monoclonal antibody","单克隆抗体"],
+  "specificity":["specificity","专一性"],
+  "clonal_selection":["clonal selection","克隆选择"],
+  "immune_response":["immune response","免疫应答"],
+  "immunity":["immunity","免疫"],
+  "defence":["defence","防御"]
+};
+
+var SEN={
+  "s1":["The nucleus contains chromosomes, which carry the genetic information of the cell.","细胞核含有染色体，染色体携带细胞的遗传信息。"],
+  "s2":["Mitochondria are the site of aerobic respiration, where ATP is released.","线粒体是有氧呼吸的场所，在此释放ATP。"],
+  "s3":["Ribosomes are the site of protein synthesis.","核糖体是蛋白质合成的场所。"],
+  "s4":["Prokaryotic cells do not have a nucleus or membrane-bound organelles.","原核细胞没有细胞核，也没有膜包被的细胞器。"],
+  "s5":["A light microscope has a lower magnification and resolution than an electron microscope.","光学显微镜的放大倍数和分辨率都比电子显微镜低。"],
+  "s6":["Water is a good solvent, so many substances can dissolve in it for transport.","水是良好的溶剂，因此许多物质能溶解在其中以便运输。"],
+  "s7":["Starch is the main storage carbohydrate in plants, while glycogen is the storage carbohydrate in animals.","淀粉是植物主要的储存性碳水化合物，而糖原是动物的储存性碳水化合物。"],
+  "s8":["Proteins are made up of amino acids joined together by peptide bonds.","蛋白质由通过肽键连接在一起的氨基酸组成。"],
+  "s9":["Cellulose forms the cell wall and gives strength and support to plant cells.","纤维素构成细胞壁，为植物细胞提供强度和支撑。"],
+  "s10":["A reducing sugar can reduce Benedict's solution from blue to orange-red on heating.","还原糖在加热时能把本尼迪克特试剂从蓝色还原为橙红色。"],
+  "s11":["A triglyceride is made of one glycerol molecule and three fatty acid molecules.","甘油三酯由一个甘油分子和三个脂肪酸分子组成。"],
+  "s12":["An enzyme is a biological catalyst that speeds up the rate of a reaction without being used up.","酶是一种生物催化剂，能加快反应速率而不被消耗。"],
+  "s13":["The substrate fits into the active site of the enzyme, forming an enzyme–substrate complex.","底物与酶的活性位点结合，形成酶–底物复合物。"],
+  "s14":["Enzymes are specific; each enzyme only catalyses one reaction or type of reaction.","酶具有专一性，每种酶只催化一种反应或一类反应。"],
+  "s15":["High temperatures denature the enzyme by changing the shape of its active site.","高温改变酶活性位点的形状，使酶变性。"],
+  "s16":["A competitive inhibitor has a similar shape to the substrate and blocks the active site.","竞争性抑制剂的形状与底物相似，能占据活性位点。"],
+  "s17":["Immobilised enzymes can be used many times and are easy to separate from the products.","固定化酶可以重复使用，并且容易与产物分离。"],
+  "s18":["Diffusion is the net movement of particles from a region of higher concentration to a region of lower concentration.","扩散是粒子从高浓度区域向低浓度区域的净移动。"],
+  "s19":["Osmosis is the net movement of water molecules across a partially permeable membrane from a region of higher water potential to a region of lower water potential.","渗透是水分子经部分透性膜从水势较高区域向水势较低区域的净移动。"],
+  "s20":["Active transport moves substances against the concentration gradient and requires energy from ATP.","主动运输逆浓度梯度运输物质，需要消耗ATP中的能量。"],
+  "s21":["The cell membrane is described as a fluid mosaic model.","细胞膜可以用流体镶嵌模型来描述。"],
+  "s22":["Facilitated diffusion uses channel proteins or carrier proteins but does not require energy.","易化扩散借助通道蛋白或载体蛋白，但不需要能量。"],
+  "s23":["A plant cell becomes turgid when it takes in water by osmosis.","植物细胞通过渗透作用吸水后会变得膨胀。"],
+  "s24":["Mitosis produces two genetically identical daughter cells.","有丝分裂产生两个遗传上相同的子细胞。"],
+  "s25":["During interphase, the cell grows and replicates its DNA in preparation for division.","分裂间期细胞生长并复制DNA，为分裂做准备。"],
+  "s26":["The chromosomes line up at the equator during metaphase.","中期时染色体排列在赤道板上。"],
+  "s27":["Cytokinesis divides the cytoplasm to complete the cell cycle.","胞质分裂分开细胞质，从而完成细胞周期。"],
+  "s28":["Uncontrolled cell division can lead to the formation of a tumour and cancer.","不受控制的细胞分裂会导致肿瘤和癌症的形成。"],
+  "s29":["DNA is a double helix made up of two polynucleotide strands held together by hydrogen bonds.","DNA是由两条多核苷酸链通过氢键连接而成的双螺旋。"],
+  "s30":["A nucleotide is made up of a phosphate group, a pentose sugar and a nitrogenous base.","核苷酸由一个磷酸基团、一个戊糖和一个含氮碱基组成。"],
+  "s31":["In transcription, the DNA code is copied into messenger RNA.","转录过程中，DNA的密码被复制到信使RNA中。"],
+  "s32":["During translation, transfer RNA brings amino acids to the ribosome in the correct order.","翻译过程中，转运RNA按正确顺序把氨基酸带到核糖体。"],
+  "s33":["A sequence of three bases, called a codon, codes for one amino acid.","由三个碱基组成的序列称为密码子，编码一个氨基酸。"],
+  "s34":["A gene is a length of DNA that codes for a polypeptide.","基因是一段编码多肽的DNA。"],
+  "s35":["Transpiration is the loss of water vapour from the leaves, mainly through the stomata.","蒸腾作用是水蒸气主要通过气孔从叶片散失的过程。"],
+  "s36":["Water moves up the xylem by the cohesion–tension mechanism.","水分通过内聚–张力机制沿木质部上升。"],
+  "s37":["The transpiration stream is driven by evaporation of water from the leaves.","蒸腾流由叶片水分的蒸发所驱动。"],
+  "s38":["Translocation transports sucrose and amino acids in the phloem from the source to the sink.","转运作用在韧皮部中把蔗糖和氨基酸从源运到库。"],
+  "s39":["Guard cells control the opening and closing of the stomata.","保卫细胞控制气孔的开放与关闭。"],
+  "s40":["Root hair cells have a large surface area, which increases the rate of absorption of water and mineral ions.","根毛细胞具有巨大的表面积，这提高了水和矿质离子的吸收速率。"],
+  "s41":["The heart pumps blood around the body through a double circulation.","心脏通过双循环把血液泵送到全身。"],
+  "s42":["The left ventricle has a thicker muscular wall because it pumps blood to the whole body.","左心室的肌肉壁更厚，因为它要把血液泵送到全身。"],
+  "s43":["Red blood cells transport oxygen combined with haemoglobin.","红细胞运输与血红蛋白结合的氧气。"],
+  "s44":["Platelets help to clot the blood at a wound.","血小板帮助在伤口处凝固血液。"],
+  "s45":["The valves in the heart prevent the backflow of blood.","心脏中的瓣膜防止血液倒流。"],
+  "s46":["Tissue fluid is formed by the filtration of plasma out of the capillaries.","组织液是血浆从毛细血管滤出而形成的。"],
+  "s47":["Alveoli have a large surface area and thin walls, which make gas exchange efficient.","肺泡具有巨大的表面积和很薄的壁，使气体交换高效进行。"],
+  "s48":["Ventilation is the process of inspiration and expiration, moving air in and out of the lungs.","通气是吸气和呼气的过程，使空气进出肺部。"],
+  "s49":["Nicotine in tobacco smoke is addictive and increases the heart rate.","烟草烟雾中的尼古丁使人上瘾并使心跳加快。"],
+  "s50":["Carbon monoxide combines with haemoglobin, reducing the oxygen-carrying capacity of the blood.","一氧化碳与血红蛋白结合，降低血液的携氧能力。"],
+  "s51":["Tar in cigarette smoke contains carcinogens, which can cause lung cancer.","香烟烟雾中的焦油含有致癌物，可能导致肺癌。"],
+  "s52":["Smoking damages the cilia and increases mucus, causing chronic bronchitis.","吸烟损伤纤毛并增加黏液，导致慢性支气管炎。"],
+  "s53":["A pathogen is a microorganism that causes disease.","病原体是引起疾病的微生物。"],
+  "s54":["Infectious diseases can be transmitted by droplet infection and by direct contact.","传染病可通过飞沫传播和直接接触传播。"],
+  "s55":["Bacteria can develop antibiotic resistance through natural selection.","细菌能通过自然选择产生抗生素耐药性。"],
+  "s56":["HIV attacks and destroys helper T cells, weakening the immune system.","HIV攻击并破坏辅助性T细胞，从而削弱免疫系统。"],
+  "s57":["Cholera is caused by the bacterium Vibrio cholerae and causes severe diarrhoea and dehydration.","霍乱由霍乱弧菌引起，导致严重腹泻和脱水。"],
+  "s58":["Antibodies are proteins produced by lymphocytes that bind to specific antigens.","抗体是淋巴细胞产生的、能与特定抗原结合的蛋白质。"],
+  "s59":["Phagocytes engulf and digest pathogens by phagocytosis.","吞噬细胞通过吞噬作用包围并消化病原体。"],
+  "s60":["Active immunity develops when the body makes its own antibodies after infection or vaccination.","主动免疫是机体在感染或接种疫苗后自己产生抗体而形成的。"],
+  "s61":["Vaccination stimulates the immune system to produce memory cells.","接种疫苗会刺激免疫系统产生记忆细胞。"],
+  "s62":["Monoclonal antibodies can be used to detect specific substances in medical testing.","单克隆抗体可用于医学检测中检测特定物质。"]
+};
+function login(){
+  var p=document.getElementById("pwd").value;
+  if(p===CFG.password){
+    sessionStorage.setItem(AUTH_KEY,"1");
+    document.getElementById("gate").style.display="none";
+    document.getElementById("main").style.display="block";
+    loadAll();
+  }else{
+    alert("密码不正确");
+  }
+}
+(function init(){
+  if(sessionStorage.getItem(AUTH_KEY)==="1"){
+    document.getElementById("gate").style.display="none";
+    document.getElementById("main").style.display="block";
+    loadAll();
+  }
+})();
+
+/* ======= 读取云端 ======= */
+function gh(path){
+  return fetch("https://api.github.com/repos/"+CFG.owner+"/"+CFG.repo+"/contents/"+path,
+    {headers:{Authorization:"Bearer "+CFG.token,"Accept":"application/vnd.github+json"}})
+    .then(function(r){return r.json().then(function(j){return{ok:r.ok,status:r.status,j:j};});});
+}
+function b64utf8(b64){return decodeURIComponent(escape(atob(b64)));}
+
+function loadAll(){
+  var el=document.getElementById("studentList");
+  el.innerHTML='<div class="card" style="text-align:center;color:var(--muted)">⏳ 正在读取云端记录…</div>';
+  var pending=ROSTER.length, list=[];
+  var netErr=0, okAny=false;
+  ROSTER.forEach(function(name){
+    gh(CFG.folder+"/"+encodeURIComponent(name)+".json").then(function(res){
+      if(res.ok){
+        try{
+          var s=JSON.parse(b64utf8(res.j.content));
+          if(s&&s.name)list.push(s);
+          else list.push({name:name,wrong:[],history:[],updated:null,note:"文件格式异常"});
+          okAny=true;
+        }catch(e){list.push({name:name,wrong:[],history:[],updated:null,note:"记录解析失败"});}
+      }else if(res.status===404){
+        list.push({name:name,wrong:[],history:[],updated:null}); /* 还没开始背词 */
+      }else if(res.status===401||res.status===403){
+        netErr=2; /* 密钥/权限问题 */
+        list.push({name:name,wrong:[],history:[],updated:null,note:"读取被拒绝（"+res.status+"）"});
+      }else{
+        netErr=1;
+        list.push({name:name,wrong:[],history:[],updated:null,note:"读取失败（"+res.status+"）"});
+      }
+    }).catch(function(){
+      netErr=1;
+      list.push({name:name,wrong:[],history:[],updated:null,note:"网络异常"});
+    }).then(function(){
+      pending--;
+      if(pending===0){
+        students=list;
+        students.sort(function(a,b){return (b.updated||"").localeCompare(a.updated||"");});
+        document.getElementById("count").textContent="共 "+students.length+" 名学生（已开始背词 "+
+          students.filter(function(s){return s.updated;}).length+" 人）";
+        if(netErr===2)el.innerHTML='<div class="card err">⚠️ 云端读取被拒绝（密钥可能已失效）。<br>请检查 CFG.token 是否仍然有效，或联系管理员更新老师端页面。</div>';
+        else if(netErr===1&&!okAny)el.innerHTML='<div class="card err">⚠️ 网络连接失败，无法读取云端记录。<br>请检查网络后点"刷新数据"重试。</div>';
+        else renderStudents();
+      }
+    });
+  });
+}
+
+/* ======= 汇总展示 ======= */
+function qrate(s){return (s.totalQuiz||0)?Math.round((s.totalQuizCorrect||0)/(s.totalQuiz||0)*100):null;}
+function todayAcc(s){return (s.quizToday||0)?Math.round((s.quizTodayCorrect||0)/(s.quizToday||0)*100):null;}
+function renderStudents(){
+  var el=document.getElementById("studentList");
+  var h="";
+  students.forEach(function(s){
+    var started=!!s.updated;
+    var goal=Math.max(1,Math.min(30,parseInt(s.goal)||10));
+    var lt=(s.learnedToday||0), qc=todayAcc(s), qr=qrate(s);
+    var wrong=s.wrong||[];var wrongSent=s.wrongSent||[];
+    var wrongN=0;wrong.forEach(function(w){wrongN+=w.n||1;});var sentN=0;wrongSent.forEach(function(w){sentN+=w.n||1;});
+    h+='<div class="card">';
+    h+='<div class="stu-top"><h3>👤 '+esc(s.name||"(未署名)")+'</h3><span class="t">'+
+      (started?('更新：'+esc((s.updated||"").replace("T"," ").slice(0,16))):(esc(s.note||"还没有开始背词"))) +
+      '</span>';
+    h+='<span class="pill '+(started?(lt>=goal?'good':lt>0?'mid':'bad'):'none')+'">'+(started?('今日 '+lt+'/'+goal+' 词'):'未开始')+'</span>';
+    h+='<span class="pill '+((wrongN+sentN)?'bad':'good')+'">错词 '+wrongN+' · 句'+sentN+'</span></div>';
+    if(started){
+      h+='<div class="kpi">';
+      h+='<div class="it"><div class="lb">今日已背</div><div class="vl" style="color:'+(lt>=goal?'var(--correct)':'var(--accent)')+'">'+lt+'/'+goal+'</div></div>';
+      h+='<div class="it"><div class="lb">累计已背</div><div class="vl">'+(s.totalLearned||0)+'</div></div>';
+      h+='<div class="it"><div class="lb">今日Quiz正确率</div><div class="vl" style="color:'+(qc==null?'var(--muted)':qc>=60?'var(--correct)':'var(--wrong)')+'">'+(qc==null?'—':qc+'%')+'</div></div>';
+      h+='<div class="it"><div class="lb">累计Quiz正确率</div><div class="vl" style="color:'+(qr==null?'var(--muted)':qr>=60?'var(--correct)':'var(--wrong)')+'">'+(qr==null?'—':qr+'%')+'</div></div>';
+      h+='</div>';
+    }
+    h+='<button class="expand-btn" onclick="toggle(this)">▸ 查看错词明细与每日进度</button>';
+    h+='<div class="detail" style="display:none;margin-top:12px">';
+    if(wrong.length){
+      h+='<div style="font-weight:700;color:var(--accent2);font-size:0.85rem;margin:6px 0 8px">❌ 错词本（'+wrong.length+' 个词'+(wrongSent.length?' · '+wrongSent.length+' 句':'')+'）</div>';
+      wrong.forEach(function(w){
+        var e=WD[w.id]||["?"+esc(w.id),""];
+        h+='<div class="wrong-q"><span class="w">'+esc(e[0])+'</span><span class="c">'+esc(e[1])+'</span><span class="n">错 '+((w.n||1))+' 次</span></div>';
+      });
+    }
+    if(wrongSent.length){
+      h+='<div style="font-weight:700;color:var(--accent2);font-size:0.85rem;margin:10px 0 6px">✍️ 翻译句错题（'+wrongSent.length+' 条）</div>';
+      wrongSent.forEach(function(x){
+        var e=SEN[x.id]||["?"+esc(x.id),""];
+        h+='<div class="wrong-q"><span class="w" style="font-size:0.78rem">'+esc(e[0])+'</span><span class="c">'+esc(e[1])+'</span><span class="n">错 '+((x.n||1))+' 次</span></div>';
+      });
+    }
+    if((s.history||[]).length){
+      h+='<div style="font-weight:700;color:var(--accent2);font-size:0.85rem;margin:10px 0 6px">📅 每日进度</div><div style="overflow-x:auto"><table><thead><tr><th>日期</th><th>目标</th><th>已背</th><th>Quiz</th><th>正确率</th></tr></thead><tbody>';
+      (s.history||[]).slice().reverse().forEach(function(hh){
+        var acc=(hh.q||0)?Math.round((hh.qc||0)/(hh.q||0)*100):null;
+        var col=acc==null?'':acc>=60?'var(--correct)':'var(--wrong)';
+        h+='<tr><td>'+esc(hh.d)+'</td><td>'+hh.g+'</td><td>'+hh.l+'</td><td>'+(hh.q||0)+'</td><td style="color:'+col+'">'+(acc==null?'—':acc+'%')+'</td></tr>';
+      });
+      h+='</tbody></table></div>';
+    }
+    if(!wrong.length&&!wrongSent.length&&!(s.history||[]).length&&started){
+      h+='<div class="empty" style="padding:20px"><div class="big">📭 还没有错词记录</div></div>';
+    }
+    h+='</div>';
+    h+='</div>';
+  });
+  el.innerHTML=h||'<div class="card empty"><div class="big">📭 还没有学生记录</div><span style="font-size:0.8rem;color:var(--muted)">等学生用 BioMemo9700 背词后，这里就会自动出现。</span></div>';
+}
+function esc(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
+function toggle(btn){
+  var d=btn.nextElementSibling;
+  var open=d.style.display!=="none";
+  d.style.display=open?"none":"block";
+  btn.textContent=open?"▸ 查看错词明细与每日进度":"▾ 收起";
+}
+function exportCSV(){
+  var rows=[["学生","更新","今日已背","目标","累计已背","今日Quiz","今日正确","累计Quiz","累计正确","句错题"]];
+  students.forEach(function(s){
+    rows.push([s.name,s.updated,s.learnedToday||0,s.goal||10,s.totalLearned||0,s.quizToday||0,s.quizTodayCorrect||0,s.totalQuiz||0,s.totalQuizCorrect||0,(s.wrongSent||[]).reduce(function(a,x){return a+(x.n||1);},0)]);
+  });
+  var csv=rows.map(function(r){return r.map(function(c){return '"'+String(c==null?"":c).replace(/"/g,'""')+'"';}).join(",");}).join("\r\n");
+  var blob=new Blob(["﻿"+csv],{type:"text/csv;charset=utf-8"});
+  var a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="biomemo9700_records.csv";a.click();
+}
+</script>
+</body>
+</html>
