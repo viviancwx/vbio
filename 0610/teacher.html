@@ -161,9 +161,12 @@ function calc(s){
   rec.forEach(function(r){var k=r.ch+"_"+r.sub;if(!lt[k]||new Date(r.d)>new Date(lt[k].d))lt[k]=r;});
   var ch={};Object.keys(lt).forEach(function(k){var e=lt[k];if(!ch[e.ch])ch[e.ch]={n:0,tp:0};ch[e.ch].n++;ch[e.ch].tp+=e.pct;});
   var chList=[];
+  var ltKeys=Object.keys(lt);
   Object.keys(ch).forEach(function(c){
     var v=Math.round(ch[c].tp/ch[c].n);
-    chList.push({key:c,cn:lt[Object.keys(ch).find(function(k){return lt[k].ch===c;})].cn||c,pct:v});
+    var firstKey=ltKeys.find(function(k){return lt[k].ch===c;});
+    var first=firstKey?lt[firstKey]:null;
+    chList.push({key:c,cn:(first&&first.cn)||c,pct:v});
   });
   chList.sort(function(a,b){return a.pct-b.pct;});
   var weak=chList.filter(function(c){return c.pct<60;});
