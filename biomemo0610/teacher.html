@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BioMemo-0610 · 老师端</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#f0f5ff;--card:#ffffff;--card2:#e8f0fe;--accent:#1a73e8;--accent2:#0d47a1;--correct:#0f9d58;--wrong:#d93025;--text:#1a1a2e;--muted:#5f6368;--radius:14px;--shadow:0 2px 12px rgba(0,0,0,0.06)}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Microsoft YaHei',Roboto,sans-serif;background:var(--bg);color:var(--text);line-height:1.7;padding:16px;min-height:100vh}
+.container{max-width:1100px;margin:0 auto}
+.header{text-align:center;padding:26px 20px;background:linear-gradient(135deg,#ffffff,#e8f0fe);border-radius:var(--radius);margin-bottom:18px;border:1px solid rgba(26,115,232,0.12);box-shadow:var(--shadow)}
+.header h1{font-size:1.5rem;font-weight:800;color:var(--accent2)}
+.header p{color:var(--muted);font-size:0.85rem;margin-top:4px}
+.card{background:var(--card);border-radius:var(--radius);padding:18px 20px;margin-bottom:14px;border:1px solid rgba(0,0,0,0.06);box-shadow:var(--shadow)}
+.card.err{background:#fce8e6;border-left:4px solid var(--wrong);color:var(--wrong)}
+.gate-card{max-width:340px;margin:6vh auto 0}
+.gate-card h2{color:var(--accent2);font-size:1.1rem;text-align:center;margin-bottom:6px}
+.gate-card p{color:var(--muted);font-size:0.8rem;text-align:center;margin-bottom:14px}
+.gate-card input{width:100%;padding:12px;border:2px solid rgba(26,115,232,0.25);border-radius:10px;font-size:1rem;outline:none}
+.gate-card input:focus{border-color:var(--accent)}
+.toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:14px}
+.btn{padding:9px 18px;border-radius:10px;border:none;font-size:0.85rem;font-weight:600;cursor:pointer;background:var(--accent);color:#fff;box-shadow:0 2px 8px rgba(26,115,232,0.25)}
+.btn.gray{background:#fff;color:var(--text);border:1px solid rgba(0,0,0,0.1);box-shadow:none}
+.btn.gray:hover{background:#f8f9fa}
+.toolbar .cnt{margin-left:auto;color:var(--muted);font-size:0.8rem;font-weight:600}
+.stu-top{display:flex;align-items:center;flex-wrap:wrap;gap:10px}
+.stu-top h3{color:var(--accent2);font-size:1.05rem}
+.stu-top .t{color:var(--muted);font-size:0.72rem}
+.pill{display:inline-block;padding:2px 10px;border-radius:999px;font-size:0.68rem;font-weight:700}
+.pill.good{background:#e6f4ea;color:var(--correct)}
+.pill.mid{background:#fef7e0;color:#e37400}
+.pill.bad{background:#fce8e6;color:var(--wrong)}
+.pill.none{background:#f1f3f4;color:var(--muted)}
+.kpi{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin:12px 0}
+.kpi .it{background:#f8faff;border-radius:10px;padding:10px;border:1px solid rgba(26,115,232,0.08)}
+.kpi .lb{font-size:0.7rem;color:var(--muted);font-weight:600}
+.kpi .vl{font-size:1.05rem;font-weight:700;margin-top:2px}
+.expand-btn{margin-top:12px;padding:8px 14px;border-radius:8px;border:1px solid rgba(26,115,232,0.2);background:#fff;color:var(--accent);font-size:0.78rem;font-weight:600;cursor:pointer}
+.expand-btn:hover{background:var(--card2)}
+.wrong-q{padding:10px 14px;background:#f8faff;border:1px solid rgba(26,115,232,0.08);border-radius:10px;margin-bottom:8px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.wrong-q .w{font-weight:700;color:var(--accent2);min-width:120px}
+.wrong-q .c{color:var(--correct);font-size:0.82rem}
+.wrong-q .n{margin-left:auto;background:#fce8e6;color:var(--wrong);border-radius:999px;padding:1px 10px;font-size:0.72rem;font-weight:700}
+table{width:100%;border-collapse:collapse;font-size:0.76rem;margin-top:8px}
+th{text-align:left;padding:6px 8px;color:var(--muted);border-bottom:1px solid #e8eaed}
+td{padding:6px 8px;border-bottom:1px solid #f0f0f0}
+.dd{display:inline-block;padding:1px 8px;border-radius:999px;font-size:0.64rem;font-weight:600}
+.d0{background:#e6f4ea;color:var(--correct)}.d1{background:#fef7e0;color:#e37400}.d2{background:#fce8e6;color:var(--wrong)}
+.empty{text-align:center;padding:50px 20px;color:var(--muted)}
+.empty .big{font-size:1rem;font-weight:700;margin-bottom:6px}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>🧠 BioMemo-0610 · 老师端</h1>
+    <p>查看每个孩子的背词进度、错词明细和每日记录（数据来自云端 memo0610 文件夹）</p>
+  </div>
+
+  <div id="gate" class="card gate-card">
+    <h2>🔒 老师入口</h2>
+    <p>请输入管理密码</p>
+    <input id="pwd" type="password" placeholder="管理密码" autocomplete="off">
+    <button class="btn" style="width:100%;margin-top:12px" onclick="login()">进入</button>
+  </div>
+
+  <div id="main" style="display:none">
+    <div class="toolbar">
+      <button class="btn" onclick="loadAll()">🔄 刷新数据</button>
+      <button class="btn gray" onclick="exportCSV()">📥 导出 CSV</button>
+      <span class="cnt" id="count"></span>
+    </div>
+    <div id="studentList"></div>
+  </div>
+</div>
+
+<script>
+/* ======= 配置 ======= */
+function bioHex(s){var r="",i=0;for(;i<s.length;i+=2)r+=String.fromCharCode(parseInt(s.substr(i,2),16));return r;}
+var CFG={
+  owner:"viviancwx",
+  repo:"biology-records",
+  folder:"memo0610",
+  token:bioHex("6769746875625f7061745f3131414e55444f4149306462713650623657447a67755f3068784b48723665796d456b596f7a5358586d6f64566e794f37555463385477444d426976556837534f6f4f524b3736455a37497a5979524a434e"),
+  password:"VivianBio2026"   /* 老师端管理密码，可在此修改 */
+};
+var AUTH_KEY="bioMemo0610TeacherOk";
+var ROSTER=["Vivian","Peter","Skylar","Suri","Vicky","Richard","Stanley","William","Simon","Amy","Channy","Diana","Alfie","Zoe","Rico","Sam","Evelyn","Curry","youze Wang"];
+var students=[];
+
+/* ======= 词表（id -> [英文, 中文]），用于错词明细 ======= */
+var WD={
+cell:["cell","细胞"],cell_wall:["cell wall","细胞壁"],cell_membrane:["cell membrane","细胞膜"],cytoplasm:["cytoplasm","细胞质"],nucleus:["nucleus","细胞核"],organelle:["organelle","细胞器"],mitochondrion:["mitochondrion","线粒体"],chloroplast:["chloroplast","叶绿体"],ribosome:["ribosome","核糖体"],vacuole:["vacuole","液泡"],microscope:["microscope","显微镜"],tissue:["tissue","组织"],organ:["organ","器官"],magnification:["magnification","放大倍数"],cell_division:["cell division","细胞分裂"],
+diffusion:["diffusion","扩散"],osmosis:["osmosis","渗透"],active_transport:["active transport","主动运输"],partial_permeable:["partially permeable membrane","部分透性膜"],water_potential:["water potential","水势"],turgid:["turgid","膨胀的"],plasmolysis:["plasmolysis","质壁分离"],gradient:["concentration gradient","浓度梯度"],surface_area:["surface area","表面积"],
+enzyme:["enzyme","酶"],catalyst:["catalyst","催化剂"],substrate:["substrate","底物"],active_site:["active site","活性位点"],denature:["denature","变性"],optimum:["optimum","最适条件"],lock_key:["lock and key","锁钥模型"],specificity:["specificity","专一性"],product:["product","产物"],
+photosynthesis:["photosynthesis","光合作用"],chlorophyll:["chlorophyll","叶绿素"],glucose:["glucose","葡萄糖"],stomata:["stomata","气孔"],guard_cell:["guard cell","保卫细胞"],transpiration:["transpiration","蒸腾作用"],xylem:["xylem","木质部"],phloem:["phloem","韧皮部"],magnesium:["magnesium","镁"],nitrate:["nitrate","硝酸盐"],deficiency:["deficiency","缺乏"],light_intensity:["light intensity","光照强度"],
+nutrition:["nutrition","营养"],ingestion:["ingestion","摄食"],digestion:["digestion","消化"],absorption:["absorption","吸收"],assimilation:["assimilation","同化"],egestion:["egestion","排遗"],bile:["bile","胆汁"],peristalsis:["peristalsis","蠕动"],villus:["villus","绒毛"],balanced_diet:["balanced diet","均衡膳食"],fibre:["dietary fibre","膳食纤维"],vitamin:["vitamin","维生素"],
+artery:["artery","动脉"],vein:["vein","静脉"],capillary:["capillary","毛细血管"],plasma:["plasma","血浆"],rbc:["red blood cell","红细胞"],haemoglobin:["haemoglobin","血红蛋白"],wbc:["white blood cell","白细胞"],platelet:["platelet","血小板"],heart:["heart","心脏"],atrium:["atrium","心房"],ventricle:["ventricle","心室"],valve:["valve","瓣膜"],double_circulation:["double circulation","双循环"],
+respiration:["respiration","呼吸作用"],aerobic:["aerobic respiration","有氧呼吸"],anaerobic:["anaerobic respiration","无氧呼吸"],lactic_acid:["lactic acid","乳酸"],oxygen_debt:["oxygen debt","氧债"],breathing:["breathing","呼吸运动"],diaphragm:["diaphragm","膈"],
+gas_exchange:["gas exchange","气体交换"],alveolus:["alveolus","肺泡"],trachea:["trachea","气管"],bronchus:["bronchus","支气管"],bronchiole:["bronchiole","细支气管"],inhalation:["inhalation","吸气"],exhalation:["exhalation","呼气"],
+excretion:["excretion","排泄"],kidney:["kidney","肾脏"],urea:["urea","尿素"],ureter:["ureter","输尿管"],bladder:["bladder","膀胱"],nephron:["nephron","肾单位"],glomerulus:["glomerulus","肾小球"],ultrafiltration:["ultrafiltration","超滤"],reabsorption:["reabsorption","重吸收"],urine:["urine","尿液"],
+stimulus:["stimulus","刺激"],response:["response","反应"],receptor:["receptor","感受器"],effector:["effector","效应器"],neuron:["neuron","神经元"],synapse:["synapse","突触"],reflex:["reflex action","反射"],reflex_arc:["reflex arc","反射弧"],hormone:["hormone","激素"],insulin:["insulin","胰岛素"],glucagon:["glucagon","胰高血糖素"],adrenaline:["adrenaline","肾上腺素"],homeostasis:["homeostasis","稳态"],nervous_system:["nervous system","神经系统"],
+reproduction:["reproduction","生殖"],gamete:["gamete","配子"],sperm:["sperm","精子"],ovum:["ovum","卵子"],fertilisation:["fertilisation","受精"],zygote:["zygote","受精卵"],pollination:["pollination","传粉"],germination:["germination","萌发"],embryo:["embryo","胚"],placenta:["placenta","胎盘"],menstrual_cycle:["menstrual cycle","月经周期"],asexual:["asexual reproduction","无性生殖"],sexual:["sexual reproduction","有性生殖"],
+inheritance:["inheritance","遗传"],gene:["gene","基因"],allele:["allele","等位基因"],chromosome:["chromosome","染色体"],dna:["DNA","脱氧核糖核酸"],dominant:["dominant","显性"],recessive:["recessive","隐性"],homozygous:["homozygous","纯合"],heterozygous:["heterozygous","杂合"],genotype:["genotype","基因型"],phenotype:["phenotype","表现型"],mutation:["mutation","突变"],variation:["variation","变异"],
+ecosystem:["ecosystem","生态系统"],habitat:["habitat","栖息地"],population:["population","种群"],community:["community","群落"],producer:["producer","生产者"],consumer:["consumer","消费者"],food_chain:["food chain","食物链"],food_web:["food web","食物网"],decomposer:["decomposer","分解者"],biomass:["biomass","生物量"],carbon_cycle:["carbon cycle","碳循环"],predator:["predator","捕食者"],prey:["prey","猎物"],
+fermentation:["fermentation","发酵"],microorganism:["microorganism","微生物"],genetic_engineering:["genetic engineering","基因工程"],transgenic:["transgenic","转基因"],selective_breeding:["selective breeding","选育"],antibiotic:["antibiotic","抗生素"],yeast:["yeast","酵母菌"]
+};
+
+function login(){
+  var p=document.getElementById("pwd").value;
+  if(p===CFG.password){
+    sessionStorage.setItem(AUTH_KEY,"1");
+    document.getElementById("gate").style.display="none";
+    document.getElementById("main").style.display="block";
+    loadAll();
+  }else{
+    alert("密码不正确");
+  }
+}
+(function init(){
+  if(sessionStorage.getItem(AUTH_KEY)==="1"){
+    document.getElementById("gate").style.display="none";
+    document.getElementById("main").style.display="block";
+    loadAll();
+  }
+})();
+
+/* ======= 读取云端 ======= */
+function gh(path){
+  return fetch("https://api.github.com/repos/"+CFG.owner+"/"+CFG.repo+"/contents/"+path,
+    {headers:{Authorization:"Bearer "+CFG.token,"Accept":"application/vnd.github+json"}})
+    .then(function(r){return r.json().then(function(j){return{ok:r.ok,status:r.status,j:j};});});
+}
+function b64utf8(b64){return decodeURIComponent(escape(atob(b64)));}
+
+function loadAll(){
+  var el=document.getElementById("studentList");
+  el.innerHTML='<div class="card" style="text-align:center;color:var(--muted)">⏳ 正在读取云端记录…</div>';
+  var pending=ROSTER.length, list=[];
+  var netErr=0, okAny=false;
+  ROSTER.forEach(function(name){
+    gh(CFG.folder+"/"+encodeURIComponent(name)+".json").then(function(res){
+      if(res.ok){
+        try{
+          var s=JSON.parse(b64utf8(res.j.content));
+          if(s&&s.name)list.push(s);
+          else list.push({name:name,wrong:[],history:[],updated:null,note:"文件格式异常"});
+          okAny=true;
+        }catch(e){list.push({name:name,wrong:[],history:[],updated:null,note:"记录解析失败"});}
+      }else if(res.status===404){
+        list.push({name:name,wrong:[],history:[],updated:null}); /* 还没开始背词 */
+      }else if(res.status===401||res.status===403){
+        netErr=2; /* 密钥/权限问题 */
+        list.push({name:name,wrong:[],history:[],updated:null,note:"读取被拒绝（"+res.status+"）"});
+      }else{
+        netErr=1;
+        list.push({name:name,wrong:[],history:[],updated:null,note:"读取失败（"+res.status+"）"});
+      }
+    }).catch(function(){
+      netErr=1;
+      list.push({name:name,wrong:[],history:[],updated:null,note:"网络异常"});
+    }).then(function(){
+      pending--;
+      if(pending===0){
+        students=list;
+        students.sort(function(a,b){return (b.updated||"").localeCompare(a.updated||"");});
+        document.getElementById("count").textContent="共 "+students.length+" 名学生（已开始背词 "+
+          students.filter(function(s){return s.updated;}).length+" 人）";
+        if(netErr===2)el.innerHTML='<div class="card err">⚠️ 云端读取被拒绝（密钥可能已失效）。<br>请检查 CFG.token 是否仍然有效，或联系管理员更新老师端页面。</div>';
+        else if(netErr===1&&!okAny)el.innerHTML='<div class="card err">⚠️ 网络连接失败，无法读取云端记录。<br>请检查网络后点"刷新数据"重试。</div>';
+        else renderStudents();
+      }
+    });
+  });
+}
+
+/* ======= 汇总展示 ======= */
+function qrate(s){return (s.totalQuiz||0)?Math.round((s.totalQuizCorrect||0)/(s.totalQuiz||0)*100):null;}
+function todayAcc(s){return (s.quizToday||0)?Math.round((s.quizTodayCorrect||0)/(s.quizToday||0)*100):null;}
+function renderStudents(){
+  var el=document.getElementById("studentList");
+  var h="";
+  students.forEach(function(s){
+    var started=!!s.updated;
+    var goal=Math.max(1,Math.min(30,parseInt(s.goal)||10));
+    var lt=(s.learnedToday||0), qc=todayAcc(s), qr=qrate(s);
+    var wrong=s.wrong||[];
+    var wrongN=0;wrong.forEach(function(w){wrongN+=w.n||1;});
+    h+='<div class="card">';
+    h+='<div class="stu-top"><h3>👤 '+esc(s.name||"(未署名)")+'</h3><span class="t">'+
+      (started?('更新：'+esc((s.updated||"").replace("T"," ").slice(0,16))):(esc(s.note||"还没有开始背词"))) +
+      '</span>';
+    h+='<span class="pill '+(started?(lt>=goal?'good':lt>0?'mid':'bad'):'none')+'">'+(started?('今日 '+lt+'/'+goal+' 词'):'未开始')+'</span>';
+    h+='<span class="pill '+(wrongN?'bad':'good')+'">错词 '+wrongN+'</span></div>';
+    if(started){
+      h+='<div class="kpi">';
+      h+='<div class="it"><div class="lb">今日已背</div><div class="vl" style="color:'+(lt>=goal?'var(--correct)':'var(--accent)')+'">'+lt+'/'+goal+'</div></div>';
+      h+='<div class="it"><div class="lb">累计已背</div><div class="vl">'+(s.totalLearned||0)+'</div></div>';
+      h+='<div class="it"><div class="lb">今日Quiz正确率</div><div class="vl" style="color:'+(qc==null?'var(--muted)':qc>=60?'var(--correct)':'var(--wrong)')+'">'+(qc==null?'—':qc+'%')+'</div></div>';
+      h+='<div class="it"><div class="lb">累计Quiz正确率</div><div class="vl" style="color:'+(qr==null?'var(--muted)':qr>=60?'var(--correct)':'var(--wrong)')+'">'+(qr==null?'—':qr+'%')+'</div></div>';
+      h+='</div>';
+    }
+    h+='<button class="expand-btn" onclick="toggle(this)">▸ 查看错词明细与每日进度</button>';
+    h+='<div class="detail" style="display:none;margin-top:12px">';
+    if(wrong.length){
+      h+='<div style="font-weight:700;color:var(--accent2);font-size:0.85rem;margin:6px 0 8px">❌ 错词本（'+wrong.length+' 个词）</div>';
+      wrong.forEach(function(w){
+        var e=WD[w.id]||["?"+esc(w.id),""];
+        h+='<div class="wrong-q"><span class="w">'+esc(e[0])+'</span><span class="c">'+esc(e[1])+'</span><span class="n">错 '+((w.n||1))+' 次</span></div>';
+      });
+    }
+    if((s.history||[]).length){
+      h+='<div style="font-weight:700;color:var(--accent2);font-size:0.85rem;margin:10px 0 6px">📅 每日进度</div><div style="overflow-x:auto"><table><thead><tr><th>日期</th><th>目标</th><th>已背</th><th>Quiz</th><th>正确率</th></tr></thead><tbody>';
+      (s.history||[]).slice().reverse().forEach(function(hh){
+        var acc=(hh.q||0)?Math.round((hh.qc||0)/(hh.q||0)*100):null;
+        var col=acc==null?'':acc>=60?'var(--correct)':'var(--wrong)';
+        h+='<tr><td>'+esc(hh.d)+'</td><td>'+hh.g+'</td><td>'+hh.l+'</td><td>'+(hh.q||0)+'</td><td style="color:'+col+'">'+(acc==null?'—':acc+'%')+'</td></tr>';
+      });
+      h+='</tbody></table></div>';
+    }
+    if(!wrong.length&&!(s.history||[]).length&&started){
+      h+='<div class="empty" style="padding:20px"><div class="big">📭 还没有错词记录</div></div>';
+    }
+    h+='</div>';
+    h+='</div>';
+  });
+  el.innerHTML=h||'<div class="card empty"><div class="big">📭 还没有学生记录</div><span style="font-size:0.8rem;color:var(--muted)">等学生用 BioMemo-0610 背词后，这里就会自动出现。</span></div>';
+}
+function esc(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
+function toggle(btn){
+  var d=btn.nextElementSibling;
+  var open=d.style.display!=="none";
+  d.style.display=open?"none":"block";
+  btn.textContent=open?"▸ 查看错词明细与每日进度":"▾ 收起";
+}
+function exportCSV(){
+  var rows=[["学生","更新","今日已背","目标","累计已背","今日Quiz","今日正确","累计Quiz","累计正确"]];
+  students.forEach(function(s){
+    rows.push([s.name,s.updated,s.learnedToday||0,s.goal||10,s.totalLearned||0,s.quizToday||0,s.quizTodayCorrect||0,s.totalQuiz||0,s.totalQuizCorrect||0]);
+  });
+  var csv=rows.map(function(r){return r.map(function(c){return '"'+String(c==null?"":c).replace(/"/g,'""')+'"';}).join(",");}).join("\r\n");
+  var blob=new Blob(["﻿"+csv],{type:"text/csv;charset=utf-8"});
+  var a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="biomemo0610_records.csv";a.click();
+}
+</script>
+</body>
+</html>
