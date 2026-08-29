@@ -1,0 +1,911 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BioMemo9700 · AS Biology 9700 学术词汇</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#f2f7f0;--card:#ffffff;--card2:#e4f2e8;--accent:#0f766e;--accent2:#134e4a;--correct:#0f9d58;--wrong:#d93025;--text:#1a1a2e;--muted:#5f6368;--glow:rgba(15,118,110,0.2);--radius:14px;--shadow:0 2px 12px rgba(0,0,0,0.06)}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Microsoft YaHei',Roboto,sans-serif;background:var(--bg);color:var(--text);line-height:1.7;padding:16px;min-height:100vh}
+.container{max-width:900px;margin:0 auto}
+.header{text-align:center;padding:22px 18px;background:linear-gradient(135deg,#ffffff,#e8f0fe);border-radius:var(--radius);margin-bottom:16px;border:1px solid rgba(15,118,110,0.12);box-shadow:var(--shadow);position:relative}
+.header h1{font-size:1.45rem;font-weight:800;color:var(--accent2)}
+.header p{color:var(--muted);font-size:0.82rem;margin-top:4px}
+.badge{display:inline-block;margin-top:8px;padding:3px 12px;border-radius:999px;background:#e6f4ea;color:var(--correct);font-size:0.72rem;font-weight:700}
+.bio-sync{display:inline-block;margin-top:8px;padding:3px 12px;border-radius:999px;background:#e6f4ea;color:var(--correct);font-size:0.72rem;font-weight:700}
+.bio-sync.off{background:#fce8e6;color:var(--wrong)}
+#pc{padding-bottom:40px}
+.card{background:var(--card);border-radius:var(--radius);padding:18px 20px;margin-bottom:14px;border:1px solid rgba(0,0,0,0.06);box-shadow:var(--shadow)}
+.card h3{color:var(--accent2);font-size:1.02rem;margin-bottom:10px}
+.btn{padding:10px 18px;border-radius:10px;border:none;font-size:0.9rem;font-weight:700;cursor:pointer;background:var(--accent);color:#fff;box-shadow:0 2px 8px rgba(15,118,110,0.25)}
+.btn.gray{background:#fff;color:var(--text);border:1px solid rgba(0,0,0,0.1);box-shadow:none}
+.btn.green{background:var(--correct)}
+.btn.red{background:var(--wrong)}
+.btn.orange{background:#e37400}
+.btn-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+.btn-row .btn{flex:1;min-width:130px}
+.kpi{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin:12px 0}
+.kpi .it{background:#f5f9f3;border-radius:10px;padding:10px;text-align:center;border:1px solid rgba(15,118,110,0.08)}
+.kpi .lb{font-size:0.7rem;color:var(--muted);font-weight:600}
+.kpi .vl{font-size:1.1rem;font-weight:700;margin-top:2px}
+.pill{display:inline-block;padding:2px 10px;border-radius:999px;font-size:0.68rem;font-weight:700}
+.pill.good{background:#e6f4ea;color:var(--correct)}
+.pill.mid{background:#fef7e0;color:#e37400}
+.pill.bad{background:#fce8e6;color:var(--wrong)}
+.pill.none{background:#f1f3f4;color:var(--muted)}
+#bioNameGate{position:fixed;inset:0;z-index:999;background:rgba(19,78,74,0.94);display:flex;align-items:center;justify-content:center;padding:20px}
+#bioNameGate .bx{background:#fff;border-radius:18px;padding:30px 26px;max-width:380px;width:100%;text-align:center;box-shadow:0 12px 40px rgba(0,0,0,0.3)}
+#bioNameGate h2{color:var(--accent2);font-size:1.15rem;margin-bottom:6px}
+#bioNameGate p{color:var(--muted);font-size:0.8rem;margin-bottom:16px}
+#bioNameGate input{width:100%;padding:12px;border:2px solid rgba(15,118,110,0.25);border-radius:10px;font-size:1rem;outline:none;text-align:center}
+#bioNameGate input:focus{border-color:var(--accent)}
+.bio-btn{width:100%;margin-top:14px}
+select{width:100%;padding:10px;border:2px solid rgba(15,118,110,0.2);border-radius:10px;font-size:0.92rem;background:#fff;color:var(--text);outline:none}
+input[type=number]{width:70px;padding:9px;border:2px solid rgba(15,118,110,0.25);border-radius:10px;font-size:1rem;text-align:center;outline:none}
+.flash{min-height:250px;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;background:#f5f9f3;border:1px solid rgba(15,118,110,0.12);border-radius:14px;padding:22px;position:relative}
+.flash .term{font-size:2rem;font-weight:800;color:var(--accent2);margin:14px 0}
+.flash .meta{position:absolute;top:12px;left:14px;font-size:0.7rem;color:var(--muted);font-weight:700}
+.flash .prog{position:absolute;top:12px;right:14px;font-size:0.7rem;color:var(--muted);font-weight:700}
+.flash .reveal{font-size:0.95rem;color:var(--text);margin-top:8px;max-width:100%}
+.flash .reveal .cn{font-size:1.4rem;font-weight:800;color:var(--correct)}
+.flash .reveal .def{color:var(--muted);font-size:0.85rem;margin-top:8px}
+.flash .reveal .def b{color:var(--accent2)}
+.opt{display:block;width:100%;padding:12px 14px;margin:8px 0;border:2px solid rgba(15,118,110,0.18);border-radius:10px;background:#fff;font-size:0.95rem;text-align:left;cursor:pointer;color:var(--text)}
+.opt:hover:not(:disabled){border-color:var(--accent);background:var(--card2)}
+.opt.ok{background:#e6f4ea;border-color:var(--correct);color:var(--correct);font-weight:700}
+.opt.no{background:#fce8e6;border-color:var(--wrong);color:var(--wrong)}
+.opt:disabled{cursor:default;opacity:1}
+.wrong-row{display:flex;align-items:center;gap:10px;padding:9px 6px;border-bottom:1px solid #f0f0f0;font-size:0.86rem}
+.wrong-row .w{font-weight:700;color:var(--accent2);min-width:130px}
+.wrong-row .n{margin-left:auto;background:#fce8e6;color:var(--wrong);border-radius:999px;padding:1px 10px;font-size:0.72rem;font-weight:700}
+table{width:100%;border-collapse:collapse;font-size:0.78rem;margin-top:8px}
+th{text-align:left;padding:6px 8px;color:var(--muted);border-bottom:1px solid #e8eaed}
+td{padding:6px 8px;border-bottom:1px solid #f0f0f0}
+.empty{text-align:center;padding:40px 20px;color:var(--muted)}
+.small{font-size:0.75rem;color:var(--muted)}
+.summary{font-size:1rem;color:var(--accent2);font-weight:700;margin:8px 0}
+</style>
+</head>
+<body>
+<div class=container>
+  <div class=header>
+    <h1>🧠 BioMemo9700</h1>
+    <p>AS Biology (9700) 学术词汇 · 中英文释义 · Quiz 检测记忆 · 翻译答题句</p>
+    <div style="margin-top:8px">
+      <span class=badge>✦ 每日背词</span>
+      <span class="bio-sync" id="bioSyncB">☁️ …</span>
+    </div>
+  </div>
+  <div id=pc></div>
+</div>
+
+<script>
+/* ======= 安全 & 云配置（bioHex 混淆，勿改） ======= */
+function bioHex(s){var r="",i=0;for(;i<s.length;i+=2)r+=String.fromCharCode(parseInt(s.substr(i,2),16));return r;}
+var BIO_CFG={owner:"viviancwx",repo:"biology-records",folder:"memo9700",token:bioHex("6769746875625f7061745f3131414e55444f4149306462713650623657447a67755f3068784b48723665796d456b596f7a5358586d6f64566e794f37555463385477444d426976556837534f6f4f524b3736455a37497a5979524a434e")};
+var BIO_STUDENT="";var bioSyncBusy=false;
+var BIO_ALLOW=["Vivian","Sofia","Kevin","Tony"];
+
+/* ======= AS Biology 9700 词库（11 单元 · CAIE AS syllabus） + 翻译答题句 ======= */
+var WORDS=[
+/* ===== Ch1 Cell structure ===== */
+{id:"cell",t:"cell",cn:"细胞",ed:"The basic structural and functional unit of a living organism.",cd:"生物体最基本的结构和功能单位。",ch:"Ch1 Cell structure"},
+{id:"nucleus",t:"nucleus",cn:"细胞核",ed:"The organelle containing DNA that controls the cell's activities.",cd:"含有DNA、控制细胞活动的细胞器。",ch:"Ch1 Cell structure"},
+{id:"nucleolus",t:"nucleolus",cn:"核仁",ed:"A dense region in the nucleus that makes ribosomes.",cd:"细胞核内制造核糖体的致密区域。",ch:"Ch1 Cell structure"},
+{id:"nuclear_envelope",t:"nuclear envelope",cn:"核膜",ed:"The double membrane surrounding the nucleus.",cd:"包围细胞核的双层膜。",ch:"Ch1 Cell structure"},
+{id:"nuclear_pore",t:"nuclear pore",cn:"核孔",ed:"A hole in the nuclear envelope that allows molecules to pass between nucleus and cytoplasm.",cd:"核膜上的小孔，允许分子在细胞核与细胞质之间通过。",ch:"Ch1 Cell structure"},
+{id:"ribosome",t:"ribosome",cn:"核糖体",ed:"The site of protein synthesis, found free or on rough ER.",cd:"蛋白质合成的场所，游离或附着于粗糙内质网上。",ch:"Ch1 Cell structure"},
+{id:"rough_er",t:"rough endoplasmic reticulum",cn:"粗糙内质网",ed:"ER with ribosomes on its surface, where proteins are made and transported.",cd:"表面附有核糖体、用于合成和运输蛋白质的内质网。",ch:"Ch1 Cell structure"},
+{id:"smooth_er",t:"smooth endoplasmic reticulum",cn:"光滑内质网",ed:"ER without ribosomes, involved in lipid and carbohydrate metabolism.",cd:"无核糖体附着、参与脂质和糖类代谢的内质网。",ch:"Ch1 Cell structure"},
+{id:"golgi_body",t:"Golgi body",cn:"高尔基体",ed:"An organelle that modifies, packages and secretes proteins.",cd:"对蛋白质进行加工、包装并分泌的细胞器。",ch:"Ch1 Cell structure"},
+{id:"lysosome",t:"lysosome",cn:"溶酶体",ed:"A membrane-bound sac of digestive enzymes that breaks down waste.",cd:"含有消化酶、分解废物的膜状小囊。",ch:"Ch1 Cell structure"},
+{id:"mitochondrion",t:"mitochondrion",cn:"线粒体",ed:"The organelle where aerobic respiration occurs and ATP is made.",cd:"进行有氧呼吸、合成ATP的细胞器。",ch:"Ch1 Cell structure"},
+{id:"crista",t:"crista",cn:"嵴",ed:"A fold of the inner mitochondrial membrane, increasing surface area.",cd:"线粒体内膜的折叠，增大表面积。",ch:"Ch1 Cell structure"},
+{id:"matrix",t:"matrix",cn:"基质",ed:"The fluid inside the inner membrane of a mitochondrion.",cd:"线粒体内膜内的液体。",ch:"Ch1 Cell structure"},
+{id:"chloroplast",t:"chloroplast",cn:"叶绿体",ed:"The organelle in plant cells where photosynthesis takes place.",cd:"植物细胞中进行光合作用的细胞器。",ch:"Ch1 Cell structure"},
+{id:"thylakoid",t:"thylakoid",cn:"类囊体",ed:"A flattened sac in a chloroplast where the light reactions occur.",cd:"叶绿体内扁平的囊状结构，光反应在此进行。",ch:"Ch1 Cell structure"},
+{id:"granum",t:"granum",cn:"基粒",ed:"A stack of thylakoids in a chloroplast.",cd:"叶绿体中由类囊体堆叠而成的结构。",ch:"Ch1 Cell structure"},
+{id:"stroma",t:"stroma",cn:"基质",ed:"The fluid surrounding the thylakoids in a chloroplast.",cd:"叶绿体类囊体外围的液体。",ch:"Ch1 Cell structure"},
+{id:"cell_wall",t:"cell wall",cn:"细胞壁",ed:"The rigid outer layer of plant cells, made mainly of cellulose.",cd:"植物细胞坚硬的细胞外层，主要由纤维素构成。",ch:"Ch1 Cell structure"},
+{id:"plasmodesmata",t:"plasmodesmata",cn:"胞间连丝",ed:"Tiny channels through plant cell walls linking adjacent cells.",cd:"穿过植物细胞壁、连接相邻细胞的小通道。",ch:"Ch1 Cell structure"},
+{id:"vacuole",t:"vacuole",cn:"液泡",ed:"A fluid-filled sac storing substances and supporting the cell.",cd:"储存物质并支撑细胞的水性小囊。",ch:"Ch1 Cell structure"},
+{id:"tonoplast",t:"tonoplast",cn:"液泡膜",ed:"The membrane surrounding a plant cell vacuole.",cd:"包围植物细胞液泡的膜。",ch:"Ch1 Cell structure"},
+{id:"cytoplasm",t:"cytoplasm",cn:"细胞质",ed:"The jelly-like material in which organelles are suspended.",cd:"悬浮着细胞器的胶状物质。",ch:"Ch1 Cell structure"},
+{id:"cytoskeleton",t:"cytoskeleton",cn:"细胞骨架",ed:"A network of protein fibres that supports the cell and moves organelles.",cd:"支撑细胞并移动细胞器的蛋白质纤维网络。",ch:"Ch1 Cell structure"},
+{id:"centriole",t:"centriole",cn:"中心粒",ed:"A pair of small tubes forming the spindle during cell division.",cd:"细胞分裂时形成纺锤体的一对微小管状结构。",ch:"Ch1 Cell structure"},
+{id:"cilia",t:"cilia",cn:"纤毛",ed:"Many short hair-like projections that move fluids over the cell surface.",cd:"细胞表面移动液体的大量短小毛状突起。",ch:"Ch1 Cell structure"},
+{id:"flagellum",t:"flagellum",cn:"鞭毛",ed:"A long tail-like structure that propels a cell such as a sperm.",cd:"推动精子等细胞游动的长尾状结构。",ch:"Ch1 Cell structure"},
+{id:"prokaryotic",t:"prokaryotic",cn:"原核的",ed:"Describing a cell without a membrane-bound nucleus, such as a bacterium.",cd:"没有膜包被细胞核的细胞，如细菌。",ch:"Ch1 Cell structure"},
+{id:"eukaryotic",t:"eukaryotic",cn:"真核的",ed:"Describing a cell with a membrane-bound nucleus and organelles.",cd:"具有膜包被细胞核和细胞器的细胞。",ch:"Ch1 Cell structure"},
+{id:"bacterium",t:"bacterium",cn:"细菌",ed:"A single-celled prokaryote, such as Escherichia coli.",cd:"单细胞原核生物，如大肠杆菌。",ch:"Ch1 Cell structure"},
+{id:"plasmid",t:"plasmid",cn:"质粒",ed:"A small circle of DNA in bacteria, often carrying extra genes.",cd:"细菌中携带额外基因的小型环状DNA。",ch:"Ch1 Cell structure"},
+{id:"capsule",t:"capsule",cn:"荚膜",ed:"A protective layer outside the cell wall of some bacteria.",cd:"某些细菌细胞壁外的一层保护结构。",ch:"Ch1 Cell structure"},
+{id:"pili",t:"pili",cn:"菌毛",ed:"Short protein fibres on bacteria used for attachment.",cd:"细菌表面用于附着短蛋白丝。",ch:"Ch1 Cell structure"},
+{id:"magnification",t:"magnification",cn:"放大倍数",ed:"How many times larger an image is than the real object.",cd:"图像比实物放大的倍数。",ch:"Ch1 Cell structure"},
+{id:"resolution",t:"resolution",cn:"分辨率",ed:"The ability to see two close points as separate.",cd:"分辨两个相近点是否分离的能力。",ch:"Ch1 Cell structure"},
+{id:"electron_microscope",t:"electron microscope",cn:"电子显微镜",ed:"A microscope using a beam of electrons, giving high magnification and resolution.",cd:"利用电子束、放大倍数和分辨率都很高的显微镜。",ch:"Ch1 Cell structure"},
+/* ===== Ch2 Biological molecules ===== */
+{id:"water",t:"water",cn:"水",ed:"A polar molecule that is the solvent in which most reactions occur.",cd:"极性分子，是绝大多数反应发生的溶剂。",ch:"Ch2 Biological molecules"},
+{id:"hydrogen_bond",t:"hydrogen bond",cn:"氢键",ed:"A weak bond between a hydrogen atom and an oxygen or nitrogen atom.",cd:"氢原子与氧或氮原子之间的弱键。",ch:"Ch2 Biological molecules"},
+{id:"cohesion",t:"cohesion",cn:"内聚力",ed:"The attraction between water molecules, helping them stick together.",cd:"水分子之间相互吸引、聚在一起的作用力。",ch:"Ch2 Biological molecules"},
+{id:"solvent",t:"solvent",cn:"溶剂",ed:"A liquid that dissolves other substances.",cd:"能溶解其他物质的液体。",ch:"Ch2 Biological molecules"},
+{id:"monosaccharide",t:"monosaccharide",cn:"单糖",ed:"The simplest sugar that cannot be hydrolysed further, such as glucose.",cd:"不能再被水解的最简单的糖，如葡萄糖。",ch:"Ch2 Biological molecules"},
+{id:"glucose",t:"glucose",cn:"葡萄糖",ed:"A hexose monosaccharide, the main respiratory substrate.",cd:"六碳单糖，细胞呼吸的主要底物。",ch:"Ch2 Biological molecules"},
+{id:"disaccharide",t:"disaccharide",cn:"双糖",ed:"A sugar made of two monosaccharides joined by a glycosidic bond.",cd:"由两个单糖通过糖苷键连接而成的糖。",ch:"Ch2 Biological molecules"},
+{id:"sucrose",t:"sucrose",cn:"蔗糖",ed:"A disaccharide of glucose and fructose, transported in plants.",cd:"由葡萄糖和果糖构成的双糖，在植物中运输。",ch:"Ch2 Biological molecules"},
+{id:"maltose",t:"maltose",cn:"麦芽糖",ed:"A disaccharide of two glucose molecules.",cd:"由两个葡萄糖分子构成的双糖。",ch:"Ch2 Biological molecules"},
+{id:"polysaccharide",t:"polysaccharide",cn:"多糖",ed:"A long chain of many monosaccharides, such as starch and glycogen.",cd:"由许多单糖连成的长链，如淀粉和糖原。",ch:"Ch2 Biological molecules"},
+{id:"starch",t:"starch",cn:"淀粉",ed:"A storage polysaccharide in plants, made of amylose and amylopectin.",cd:"植物储存能量的多糖，由直链淀粉和支链淀粉构成。",ch:"Ch2 Biological molecules"},
+{id:"glycogen",t:"glycogen",cn:"糖原",ed:"The storage polysaccharide in animals, stored in the liver and muscles.",cd:"动物的储存多糖，储存在肝脏和肌肉中。",ch:"Ch2 Biological molecules"},
+{id:"cellulose",t:"cellulose",cn:"纤维素",ed:"A structural polysaccharide of β-glucose forming plant cell walls.",cd:"由β-葡萄糖组成的、构成植物细胞壁的结构性多糖。",ch:"Ch2 Biological molecules"},
+{id:"amino_acid",t:"amino acid",cn:"氨基酸",ed:"A molecule with an amino group, a carboxyl group and an R group, the unit of proteins.",cd:"含氨基、羧基和R基的分子，是蛋白质的基本单位。",ch:"Ch2 Biological molecules"},
+{id:"peptide_bond",t:"peptide bond",cn:"肽键",ed:"The bond formed between two amino acids in condensation.",cd:"两个氨基酸经缩合反应形成的化学键。",ch:"Ch2 Biological molecules"},
+{id:"dipeptide",t:"dipeptide",cn:"二肽",ed:"Two amino acids joined by a peptide bond.",cd:"由肽键连接的两个氨基酸。",ch:"Ch2 Biological molecules"},
+{id:"polypeptide",t:"polypeptide",cn:"多肽",ed:"A chain of many amino acids linked by peptide bonds.",cd:"由肽键连接许多氨基酸形成的链。",ch:"Ch2 Biological molecules"},
+{id:"protein",t:"protein",cn:"蛋白质",ed:"A polymer of amino acids folded into a specific shape.",cd:"由氨基酸折叠成特定形状的聚合物。",ch:"Ch2 Biological molecules"},
+{id:"primary_structure",t:"primary structure",cn:"一级结构",ed:"The sequence of amino acids in a polypeptide.",cd:"多肽中氨基酸的排列顺序。",ch:"Ch2 Biological molecules"},
+{id:"secondary_structure",t:"secondary structure",cn:"二级结构",ed:"The folding of a polypeptide into alpha helices or beta pleated sheets.",cd:"多肽折叠成的α螺旋或β折叠片结构。",ch:"Ch2 Biological molecules"},
+{id:"tertiary_structure",t:"tertiary structure",cn:"三级结构",ed:"The overall three-dimensional shape of a protein.",cd:"蛋白质整体的三维形状。",ch:"Ch2 Biological molecules"},
+{id:"quaternary_structure",t:"quaternary structure",cn:"四级结构",ed:"Two or more polypeptide chains held together in a protein.",cd:"多条多肽链结合在一起构成蛋白质。",ch:"Ch2 Biological molecules"},
+{id:"globular_protein",t:"globular protein",cn:"球状蛋白",ed:"A compact, roughly spherical protein such as an enzyme.",cd:"致密、大致呈球形的蛋白质，如酶。",ch:"Ch2 Biological molecules"},
+{id:"fibrous_protein",t:"fibrous protein",cn:"纤维状蛋白",ed:"A long, strong protein such as collagen.",cd:"长而坚韧的蛋白质，如胶原蛋白。",ch:"Ch2 Biological molecules"},
+{id:"lipid",t:"lipid",cn:"脂质",ed:"Fats and oils, insoluble in water, used for energy storage and membranes.",cd:"不溶于水的脂肪和油类，用于储能和构成膜。",ch:"Ch2 Biological molecules"},
+{id:"triglyceride",t:"triglyceride",cn:"甘油三酯",ed:"A lipid made of one glycerol and three fatty acids.",cd:"由一个甘油和三个脂肪酸构成的脂质。",ch:"Ch2 Biological molecules"},
+{id:"fatty_acid",t:"fatty acid",cn:"脂肪酸",ed:"A hydrocarbon chain with a carboxyl group, part of a triglyceride.",cd:"带羧基的碳氢链，是甘油三酯的组成成分。",ch:"Ch2 Biological molecules"},
+{id:"glycerol",t:"glycerol",cn:"甘油",ed:"An alcohol that joins with fatty acids to form triglycerides.",cd:"与脂肪酸结合形成甘油三酯的醇。",ch:"Ch2 Biological molecules"},
+{id:"phospholipid",t:"phospholipid",cn:"磷脂",ed:"A lipid with a hydrophilic head and two hydrophobic tails, forming membranes.",cd:"有亲水头和两条疏水尾、构成膜的脂质。",ch:"Ch2 Biological molecules"},
+{id:"hydrophilic",t:"hydrophilic",cn:"亲水的",ed:"Attracted to water.",cd:"对水有亲和力的。",ch:"Ch2 Biological molecules"},
+{id:"hydrophobic",t:"hydrophobic",cn:"疏水的",ed:"Repelled by water.",cd:"排斥水的。",ch:"Ch2 Biological molecules"},
+{id:"ester_bond",t:"ester bond",cn:"酯键",ed:"The bond formed between glycerol and a fatty acid in a lipid.",cd:"脂质中甘油与脂肪酸之间形成的化学键。",ch:"Ch2 Biological molecules"},
+{id:"condensation",t:"condensation",cn:"缩合",ed:"Joining molecules while releasing a molecule of water.",cd:"分子结合并释放一分子水的反应。",ch:"Ch2 Biological molecules"},
+{id:"hydrolysis",t:"hydrolysis",cn:"水解",ed:"Breaking a molecule apart using water.",cd:"利用水把分子分解开的反应。",ch:"Ch2 Biological molecules"},
+{id:"reducing_sugar",t:"reducing sugar",cn:"还原糖",ed:"A sugar that reduces Benedict's solution, turning it orange-red.",cd:"能使本尼迪克特试剂变橙红色的糖。",ch:"Ch2 Biological molecules"},
+{id:"benedict",t:"Benedict's solution",cn:"本尼迪克特试剂",ed:"A blue reagent used to test for reducing sugars.",cd:"检测还原糖的蓝色试剂。",ch:"Ch2 Biological molecules"},
+{id:"biuret_reagent",t:"Biuret reagent",cn:"双缩脲试剂",ed:"A reagent that turns purple in the presence of protein.",cd:"遇蛋白质变紫色的试剂。",ch:"Ch2 Biological molecules"},
+{id:"emulsion_test",t:"emulsion test",cn:"乳化实验",ed:"A test for lipids: shaking with ethanol and water gives a white emulsion.",cd:"检测脂质的实验：加乙醇和水振摇出现白色乳浊液。",ch:"Ch2 Biological molecules"},
+/* ===== Ch3 Enzymes ===== */
+{id:"enzyme",t:"enzyme",cn:"酶",ed:"A biological catalyst that speeds up reactions without being used up.",cd:"加快反应速率而不被消耗的生物催化剂。",ch:"Ch3 Enzymes"},
+{id:"catalyst",t:"catalyst",cn:"催化剂",ed:"A substance that increases the rate of a reaction and is unchanged at the end.",cd:"提高反应速率、反应结束后自身不变的物质。",ch:"Ch3 Enzymes"},
+{id:"active_site",t:"active site",cn:"活性位点",ed:"The region of an enzyme where the substrate binds.",cd:"酶上与底物结合的区域。",ch:"Ch3 Enzymes"},
+{id:"substrate",t:"substrate",cn:"底物",ed:"The substance an enzyme acts upon.",cd:"酶作用的物质。",ch:"Ch3 Enzymes"},
+{id:"product",t:"product",cn:"产物",ed:"The substance formed by an enzyme-catalysed reaction.",cd:"酶催化反应生成的物质。",ch:"Ch3 Enzymes"},
+{id:"activation_energy",t:"activation energy",cn:"活化能",ed:"The minimum energy needed to start a reaction.",cd:"启动反应所需的最低能量。",ch:"Ch3 Enzymes"},
+{id:"induced_fit",t:"induced fit",cn:"诱导契合模型",ed:"The model where the active site changes shape to fit the substrate.",cd:"描述活性位点改变形状以适应底物的模型。",ch:"Ch3 Enzymes"},
+{id:"enzyme_substrate_complex",t:"enzyme–substrate complex",cn:"酶–底物复合物",ed:"The temporary combination of enzyme and substrate at the active site.",cd:"酶与底物在活性位点暂时结合形成的复合物。",ch:"Ch3 Enzymes"},
+{id:"enzyme_inhibitor",t:"enzyme inhibitor",cn:"酶抑制剂",ed:"A substance that slows down or stops enzyme activity.",cd:"减慢或阻止酶活性的物质。",ch:"Ch3 Enzymes"},
+{id:"competitive_inhibitor",t:"competitive inhibitor",cn:"竞争性抑制剂",ed:"An inhibitor with a similar shape to the substrate, blocking the active site.",cd:"形状与底物相似、占据活性位点的抑制剂。",ch:"Ch3 Enzymes"},
+{id:"non_competitive_inhibitor",t:"non-competitive inhibitor",cn:"非竞争性抑制剂",ed:"An inhibitor that binds away from the active site and changes its shape.",cd:"在活性位点以外结合、改变活性位点形状的抑制剂。",ch:"Ch3 Enzymes"},
+{id:"cofactor",t:"cofactor",cn:"辅因子",ed:"A non-protein substance needed by some enzymes to work, such as a metal ion.",cd:"某些酶工作所需的非蛋白质物质，如金属离子。",ch:"Ch3 Enzymes"},
+{id:"coenzyme",t:"coenzyme",cn:"辅酶",ed:"An organic cofactor, often a vitamin, that helps an enzyme.",cd:"有机辅因子，常为维生素，协助酶发挥作用。",ch:"Ch3 Enzymes"},
+{id:"prosthetic_group",t:"prosthetic group",cn:"辅基",ed:"A cofactor permanently attached to an enzyme.",cd:"与酶永久结合的辅因子。",ch:"Ch3 Enzymes"},
+{id:"optimum",t:"optimum",cn:"最适条件",ed:"The temperature or pH at which an enzyme works fastest.",cd:"酶催化速率最快的温度或pH条件。",ch:"Ch3 Enzymes"},
+{id:"denaturation",t:"denaturation",cn:"变性",ed:"Permanent loss of an enzyme's shape so it can no longer function.",cd:"酶永久失去原有形状而丧失功能。",ch:"Ch3 Enzymes"},
+{id:"vmax",t:"Vmax",cn:"最大反应速率",ed:"The maximum rate of an enzyme-catalysed reaction when the active sites are saturated.",cd:"活性位点被饱和时酶促反应的最大速率。",ch:"Ch3 Enzymes"},
+{id:"immobilised_enzyme",t:"immobilised enzyme",cn:"固定化酶",ed:"An enzyme attached to a surface or trapped so it can be reused.",cd:"附着在表面或包埋起来、可重复使用的酶。",ch:"Ch3 Enzymes"},
+{id:"amylase",t:"amylase",cn:"淀粉酶",ed:"An enzyme that breaks down starch into maltose.",cd:"把淀粉分解为麦芽糖的酶。",ch:"Ch3 Enzymes"},
+{id:"catalase",t:"catalase",cn:"过氧化氢酶",ed:"An enzyme that breaks down hydrogen peroxide into water and oxygen.",cd:"把过氧化氢分解为水和氧气的酶。",ch:"Ch3 Enzymes"},
+{id:"protease",t:"protease",cn:"蛋白酶",ed:"An enzyme that breaks down proteins into amino acids.",cd:"把蛋白质分解为氨基酸的酶。",ch:"Ch3 Enzymes"},
+{id:"lipase",t:"lipase",cn:"脂肪酶",ed:"An enzyme that breaks down triglycerides into glycerol and fatty acids.",cd:"把甘油三酯分解为甘油和脂肪酸的酶。",ch:"Ch3 Enzymes"},
+{id:"lactase",t:"lactase",cn:"乳糖酶",ed:"An enzyme that breaks down lactose into glucose and galactose.",cd:"把乳糖分解为葡萄糖和半乳糖的酶。",ch:"Ch3 Enzymes"},
+{id:"temperature_coefficient",t:"temperature coefficient (Q10)",cn:"温度系数",ed:"The ratio of a reaction rate at one temperature to that 10 °C lower.",cd:"某一温度下反应速率与低10°C时速率的比值。",ch:"Ch3 Enzymes"},
+/* ===== Ch4 Cell membranes & transport ===== */
+{id:"phospholipid_bilayer",t:"phospholipid bilayer",cn:"磷脂双分子层",ed:"Two layers of phospholipids forming the basis of cell membranes.",cd:"两层磷脂构成细胞膜的基础。",ch:"Ch4 Cell membranes & transport"},
+{id:"fluid_mosaic",t:"fluid mosaic model",cn:"流体镶嵌模型",ed:"The model of membranes with a fluid bilayer and proteins scattered in it.",cd:"描述膜内流体双层和散布蛋白质的膜结构模型。",ch:"Ch4 Cell membranes & transport"},
+{id:"intrinsic_protein",t:"intrinsic protein",cn:"内在蛋白",ed:"A protein spanning across the whole membrane.",cd:"贯穿整个膜的蛋白质。",ch:"Ch4 Cell membranes & transport"},
+{id:"extrinsic_protein",t:"extrinsic protein",cn:"外在蛋白",ed:"A protein attached to one surface of the membrane.",cd:"附着在膜一侧表面的蛋白质。",ch:"Ch4 Cell membranes & transport"},
+{id:"glycoprotein",t:"glycoprotein",cn:"糖蛋白",ed:"A protein with a carbohydrate chain, used for cell recognition.",cd:"带糖链的蛋白质，用于细胞识别。",ch:"Ch4 Cell membranes & transport"},
+{id:"glycolipid",t:"glycolipid",cn:"糖脂",ed:"A lipid with a carbohydrate chain, involved in cell recognition.",cd:"带糖链的脂质，参与细胞识别。",ch:"Ch4 Cell membranes & transport"},
+{id:"cholesterol",t:"cholesterol",cn:"胆固醇",ed:"A lipid in animal membranes that reduces fluidity.",cd:"动物细胞膜中降低膜流动性的脂质。",ch:"Ch4 Cell membranes & transport"},
+{id:"channel_protein",t:"channel protein",cn:"通道蛋白",ed:"A protein forming a pore for water-soluble substances in facilitated diffusion.",cd:"在易化扩散中为水溶性物质形成孔道的蛋白质。",ch:"Ch4 Cell membranes & transport"},
+{id:"carrier_protein",t:"carrier protein",cn:"载体蛋白",ed:"A protein that changes shape to move molecules across a membrane.",cd:"改变形状把分子运过膜的蛋白质。",ch:"Ch4 Cell membranes & transport"},
+{id:"receptor",t:"receptor",cn:"受体",ed:"A protein on a cell that binds specific signalling molecules.",cd:"细胞上结合特定信号分子的蛋白质。",ch:"Ch4 Cell membranes & transport"},
+{id:"diffusion",t:"diffusion",cn:"扩散",ed:"The net movement of particles from high to low concentration.",cd:"粒子从高浓度向低浓度的净移动。",ch:"Ch4 Cell membranes & transport"},
+{id:"facilitated_diffusion",t:"facilitated diffusion",cn:"易化扩散",ed:"Diffusion through channel or carrier proteins, down a gradient and without energy.",cd:"借助通道或载体蛋白、顺浓度梯度且不耗能的扩散。",ch:"Ch4 Cell membranes & transport"},
+{id:"osmosis",t:"osmosis",cn:"渗透",ed:"The net movement of water across a partially permeable membrane from higher to lower water potential.",cd:"水分子经部分透性膜从高水势向低水势的净移动。",ch:"Ch4 Cell membranes & transport"},
+{id:"water_potential",t:"water potential",cn:"水势",ed:"A measure of the tendency of water to move; pure water has a value of zero.",cd:"衡量水移动趋势的量，纯水的水势为零。",ch:"Ch4 Cell membranes & transport"},
+{id:"active_transport",t:"active transport",cn:"主动运输",ed:"Movement of substances against a concentration gradient, using ATP.",cd:"逆浓度梯度、消耗ATP运输物质的过程。",ch:"Ch4 Cell membranes & transport"},
+{id:"endocytosis",t:"endocytosis",cn:"胞吞",ed:"Taking materials into a cell by forming vesicles from the membrane.",cd:"细胞膜内陷形成囊泡把物质吞入细胞的过程。",ch:"Ch4 Cell membranes & transport"},
+{id:"exocytosis",t:"exocytosis",cn:"胞吐",ed:"Releasing materials from a cell by fusing vesicles with the membrane.",cd:"囊泡与细胞膜融合把物质排出细胞的过程。",ch:"Ch4 Cell membranes & transport"},
+{id:"phagocytosis",t:"phagocytosis",cn:"吞噬作用",ed:"Endocytosis of solid particles, as by phagocytes.",cd:"细胞吞入固体颗粒的胞吞过程，如吞噬细胞。",ch:"Ch4 Cell membranes & transport"},
+{id:"pinocytosis",t:"pinocytosis",cn:"胞饮作用",ed:"Endocytosis of liquid droplets.",cd:"细胞吞入液体小滴的胞吞过程。",ch:"Ch4 Cell membranes & transport"},
+{id:"vesicle",t:"vesicle",cn:"囊泡",ed:"A small membrane sac used to transport materials in cells.",cd:"细胞中运输物质的小膜囊。",ch:"Ch4 Cell membranes & transport"},
+{id:"surface_volume_ratio",t:"surface area to volume ratio",cn:"表面积与体积比",ed:"The ratio affecting the rate of exchange between a cell and its environment.",cd:"影响细胞与环境交换速率的比例。",ch:"Ch4 Cell membranes & transport"},
+{id:"concentration_gradient",t:"concentration gradient",cn:"浓度梯度",ed:"The difference in concentration between two regions.",cd:"两区域之间浓度的差异。",ch:"Ch4 Cell membranes & transport"},
+{id:"turgid",t:"turgid",cn:"膨胀的",ed:"The state of a plant cell swollen with water and pressing on its wall.",cd:"植物细胞吸水膨胀并压向细胞壁的状态。",ch:"Ch4 Cell membranes & transport"},
+{id:"plasmolysis",t:"plasmolysis",cn:"质壁分离",ed:"Shrinkage of the cytoplasm away from the cell wall as a cell loses water.",cd:"细胞失水时细胞质与细胞壁分离的现象。",ch:"Ch4 Cell membranes & transport"},
+{id:"saturation",t:"saturation",cn:"饱和",ed:"When all carrier proteins are busy, so the transport rate reaches a maximum.",cd:"所有载体蛋白都在工作、运输速率达到最大值。",ch:"Ch4 Cell membranes & transport"},
+/* ===== Ch5 The mitotic cell cycle ===== */
+{id:"cell_cycle",t:"cell cycle",cn:"细胞周期",ed:"The sequence of growth, DNA replication and division in a cell's life.",cd:"细胞一生中生长、DNA复制和分裂的序列。",ch:"Ch5 The mitotic cell cycle"},
+{id:"interphase",t:"interphase",cn:"分裂间期",ed:"The stage when the cell grows, replicates DNA and prepares for division.",cd:"细胞生长、复制DNA并为分裂作准备的阶段。",ch:"Ch5 The mitotic cell cycle"},
+{id:"mitosis",t:"mitosis",cn:"有丝分裂",ed:"Nuclear division producing two genetically identical daughter nuclei.",cd:"产生两个遗传相同子细胞核的分裂。",ch:"Ch5 The mitotic cell cycle"},
+{id:"prophase",t:"prophase",cn:"前期",ed:"The first stage of mitosis when chromosomes condense and become visible.",cd:"有丝分裂第一阶段，染色体凝缩清晰可见。",ch:"Ch5 The mitotic cell cycle"},
+{id:"metaphase",t:"metaphase",cn:"中期",ed:"The stage when chromosomes line up at the equator of the cell.",cd:"染色体排列在细胞赤道板的阶段。",ch:"Ch5 The mitotic cell cycle"},
+{id:"anaphase",t:"anaphase",cn:"后期",ed:"The stage when sister chromatids are pulled to opposite poles.",cd:"姐妹染色单体被拉向细胞两极的阶段。",ch:"Ch5 The mitotic cell cycle"},
+{id:"telophase",t:"telophase",cn:"末期",ed:"The final stage when chromosomes arrive at the poles and new nuclear envelopes form.",cd:"染色体到达两极、形成新核膜的最终阶段。",ch:"Ch5 The mitotic cell cycle"},
+{id:"cytokinesis",t:"cytokinesis",cn:"胞质分裂",ed:"The division of the cytoplasm to form two daughter cells.",cd:"细胞质分裂形成两个子细胞的过程。",ch:"Ch5 The mitotic cell cycle"},
+{id:"chromosome",t:"chromosome",cn:"染色体",ed:"A thread of DNA and protein, made of two sister chromatids after replication.",cd:"由DNA和蛋白质组成的线状结构，复制后含两条姐妹染色单体。",ch:"Ch5 The mitotic cell cycle"},
+{id:"chromatid",t:"chromatid",cn:"染色单体",ed:"One of the two identical halves of a replicated chromosome.",cd:"复制后染色体两个相同的一半之一。",ch:"Ch5 The mitotic cell cycle"},
+{id:"centromere",t:"centromere",cn:"着丝粒",ed:"The region where the two sister chromatids are held together.",cd:"两条姐妹染色单体连在一起的位置。",ch:"Ch5 The mitotic cell cycle"},
+{id:"spindle_fibre",t:"spindle fibre",cn:"纺锤丝",ed:"Protein fibres that pull chromosomes apart during mitosis.",cd:"有丝分裂中把染色体分开的蛋白质纤维。",ch:"Ch5 The mitotic cell cycle"},
+{id:"homologous_pair",t:"homologous pair",cn:"同源染色体",ed:"A pair of chromosomes, one from each parent, carrying the same genes.",cd:"一条来自父方、一条来自母方、携带相同基因的染色体对。",ch:"Ch5 The mitotic cell cycle"},
+{id:"sister_chromatid",t:"sister chromatid",cn:"姐妹染色单体",ed:"Two identical chromatids joined at the centromere.",cd:"在着丝粒处相连的两条相同染色单体。",ch:"Ch5 The mitotic cell cycle"},
+{id:"replication",t:"replication",cn:"复制",ed:"The copying of DNA so each new cell gets the same genetic information.",cd:"DNA复制，使每个新细胞获得相同的遗传信息。",ch:"Ch5 The mitotic cell cycle"},
+{id:"s_phase",t:"S phase",cn:"S期",ed:"The part of interphase when DNA is replicated.",cd:"分裂间期中进行DNA复制的阶段。",ch:"Ch5 The mitotic cell cycle"},
+{id:"cancer",t:"cancer",cn:"癌症",ed:"A disease of uncontrolled cell division forming tumours.",cd:"细胞分裂失控形成肿瘤的疾病。",ch:"Ch5 The mitotic cell cycle"},
+{id:"tumour",t:"tumour",cn:"肿瘤",ed:"A mass of cells growing out of control.",cd:"细胞失控增殖形成的肿块。",ch:"Ch5 The mitotic cell cycle"},
+{id:"daughter_cell",t:"daughter cell",cn:"子细胞",ed:"A cell formed by the division of a parent cell.",cd:"亲代细胞分裂产生的细胞。",ch:"Ch5 The mitotic cell cycle"},
+{id:"genetically_identical",t:"genetically identical",cn:"遗传相同的",ed:"Having the same genes as the parent cell.",cd:"与亲代细胞具有相同基因的。",ch:"Ch5 The mitotic cell cycle"},
+{id:"growth",t:"growth",cn:"生长",ed:"An increase in size brought about by cell division and expansion.",cd:"通过细胞分裂和增大而发生的体积增加。",ch:"Ch5 The mitotic cell cycle"},
+{id:"repair",t:"repair",cn:"修复",ed:"The replacement of damaged cells by division of healthy cells.",cd:"健康细胞分裂替代受损细胞的过程。",ch:"Ch5 The mitotic cell cycle"},
+/* ===== Ch6 Nucleic acids & protein synthesis ===== */
+{id:"nucleic_acid",t:"nucleic acid",cn:"核酸",ed:"DNA or RNA, polymers of nucleotides that store genetic information.",cd:"DNA或RNA，储存遗传信息的核苷酸聚合物。",ch:"Ch6 Nucleic acids & protein synthesis"},
+{id:"nucleotide",t:"nucleotide",cn:"核苷酸",ed:"A monomer of nucleic acids with a phosphate, a pentose sugar and a base.",cd:"由磷酸、戊糖和碱基构成的核酸单体。",ch:"Ch6 Nucleic acids & protein synthesis"},
+{id:"deoxyribose",t:"deoxyribose",cn:"脱氧核糖",ed:"The five-carbon sugar found in DNA.",cd:"DNA中存在的五碳糖。",ch:"Ch6 Nucleic acids & protein synthesis"},
+{id:"ribose",t:"ribose",cn:"核糖",ed:"The five-carbon sugar found in RNA.",cd:"RNA中存在的五碳糖。",ch:"Ch6 Nucleic acids & protein synthesis"},
+{id:"phosphate_group",t:"phosphate group",cn:"磷酸基团",ed:"The part of a nucleotide that joins nucleotides into a chain.",cd:"核苷酸中把各核苷酸连成链的部分。",ch:"Ch6 Nucleic acids & protein synthesis"},
+{id:"nitrogenous_base",t:"nitrogenous base",cn:"含氮碱基",ed:"A base in DNA or RNA: A, T, C, G or U.",cd:"DNA或RNA中的碱基：A、T、C、G或U。",ch:"Ch6 Nucleic acids & protein synthesis"},
+{id:"adenine",t:"adenine",cn:"腺嘌呤",ed:"The base A, which pairs with thymine in DNA.",cd:"碱基A，在DNA中与胸腺嘧啶配对。",ch:"Ch6 Nucleic acids & protein synthesis"},
+{id:"guanine",t:"guanine",cn:"鸟嘌呤",ed:"The base G, which pairs with cytosine.",cd:"碱基G，与胞嘧啶配对。",ch:"Ch6 Nucleic acids & protein synthesis"},
+{id:"cytosine",t:"cytosine",cn:"胞嘧啶",ed:"The base C, which pairs with guanine.",cd:"碱基C，与鸟嘌呤配对。",ch:"Ch6 Nucleic acids & protein synthesis"},
+{id:"thymine",t:"thymine",cn:"胸腺嘧啶",ed:"The base T, found only in DNA, pairing with adenine.",cd:"仅存在于DNA中、与腺嘌呤配对的碱基。",ch:"Ch6 Nucleic acids & protein synthesis"},
+{id:"uracil",t:"uracil",cn:"尿嘧啶",ed:"The base U, found in RNA instead of thymine.",cd:"RNA中替代胸腺嘧啶的碱基。",ch:"Ch6 Nucleic acids & protein synthesis"},
+{id:"complementary_base_pairing",t:"complementary base pairing",cn:"碱基互补配对",ed:"A pairs with T and C pairs with G, holding DNA strands together.",cd:"A与T配对、C与G配对，使DNA双链结合。",ch:"Ch6 Nucleic acids & protein synthesis"},
+{id:"double_helix",t:"double helix",cn:"双螺旋",ed:"The two-stranded twisted structure of DNA.",cd:"DNA双链缠绕的螺旋结构。",ch:"Ch6 Nucleic acids & protein synthesis"},
+{id:"dna_polymerase",t:"DNA polymerase",cn:"DNA聚合酶",ed:"The enzyme that joins nucleotides during DNA replication.",cd:"DNA复制时把核苷酸连接起来的酶。",ch:"Ch6 Nucleic acids & protein synthesis"},
+{id:"transcription",t:"transcription",cn:"转录",ed:"Copying the DNA sequence of a gene into messenger RNA.",cd:"把基因的DNA序列复制到信使RNA中。",ch:"Ch6 Nucleic acids & protein synthesis"},
+{id:"translation",t:"translation",cn:"翻译",ed:"Building a polypeptide from amino acids using the mRNA code.",cd:"利用mRNA密码把氨基酸组装成多肽的过程。",ch:"Ch6 Nucleic acids & protein synthesis"},
+{id:"messenger_rna",t:"messenger RNA",cn:"信使RNA",ed:"RNA carrying the genetic code from DNA to ribosomes.",cd:"把遗传密码从DNA带到核糖体的RNA。",ch:"Ch6 Nucleic acids & protein synthesis"},
+{id:"transfer_rna",t:"transfer RNA",cn:"转运RNA",ed:"RNA that carries a specific amino acid to the ribosome using an anticodon.",cd:"借助反密码子把特定氨基酸带到核糖体的RNA。",ch:"Ch6 Nucleic acids & protein synthesis"},
+{id:"ribosomal_rna",t:"ribosomal RNA",cn:"核糖体RNA",ed:"RNA that, with proteins, makes up the ribosome.",cd:"与蛋白质共同构成核糖体的RNA。",ch:"Ch6 Nucleic acids & protein synthesis"},
+{id:"codon",t:"codon",cn:"密码子",ed:"A sequence of three bases on mRNA coding for one amino acid.",cd:"mRNA上编码一个氨基酸的三个碱基序列。",ch:"Ch6 Nucleic acids & protein synthesis"},
+{id:"anticodon",t:"anticodon",cn:"反密码子",ed:"Three bases on tRNA that pair with a codon on mRNA.",cd:"tRNA上与mRNA密码子配对的三个碱基。",ch:"Ch6 Nucleic acids & protein synthesis"},
+{id:"gene",t:"gene",cn:"基因",ed:"A length of DNA that codes for a polypeptide.",cd:"一段编码多肽的DNA。",ch:"Ch6 Nucleic acids & protein synthesis"},
+{id:"triplet_code",t:"triplet code",cn:"三联体密码",ed:"The three-base code of DNA that specifies one amino acid.",cd:"DNA中指定一个氨基酸的三碱基编码。",ch:"Ch6 Nucleic acids & protein synthesis"},
+{id:"degenerate_code",t:"degenerate code",cn:"简并密码",ed:"More than one codon can code for the same amino acid.",cd:"多个密码子可编码同一氨基酸的现象。",ch:"Ch6 Nucleic acids & protein synthesis"},
+{id:"stop_codon",t:"stop codon",cn:"终止密码子",ed:"A codon such as UAA, UAG or UGA that ends translation.",cd:"终止翻译的密码子，如UAA、UAG或UGA。",ch:"Ch6 Nucleic acids & protein synthesis"},
+{id:"mutation",t:"mutation",cn:"突变",ed:"A change in the base sequence of DNA.",cd:"DNA碱基序列的改变。",ch:"Ch6 Nucleic acids & protein synthesis"},
+{id:"base_substitution",t:"base substitution",cn:"碱基替换",ed:"Replacing one base with another in DNA.",cd:"DNA中一个碱基被另一个碱基替换。",ch:"Ch6 Nucleic acids & protein synthesis"},
+{id:"frameshift",t:"frameshift mutation",cn:"移码突变",ed:"A change from deleting or inserting bases, shifting the reading frame.",cd:"碱基缺失或插入使阅读框移动的突变。",ch:"Ch6 Nucleic acids & protein synthesis"},
+/* ===== Ch7 Transport in plants ===== */
+{id:"xylem",t:"xylem",cn:"木质部",ed:"Plant tissue transporting water and mineral ions upwards, with lignified walls.",cd:"向上运输水和矿质离子、细胞壁木质化的植物组织。",ch:"Ch7 Transport in plants"},
+{id:"phloem",t:"phloem",cn:"韧皮部",ed:"Plant tissue transporting sucrose and amino acids, made of sieve tubes and companion cells.",cd:"由筛管和伴胞构成、运输蔗糖和氨基酸的植物组织。",ch:"Ch7 Transport in plants"},
+{id:"vascular_bundle",t:"vascular bundle",cn:"维管束",ed:"A strand of xylem and phloem running through a plant.",cd:"贯穿植物的木质部和韧皮部束。",ch:"Ch7 Transport in plants"},
+{id:"transpiration",t:"transpiration",cn:"蒸腾作用",ed:"The loss of water vapour from a plant, mainly through stomata.",cd:"植物主要通过气孔散失水蒸气的过程。",ch:"Ch7 Transport in plants"},
+{id:"transpiration_stream",t:"transpiration stream",cn:"蒸腾流",ed:"The continuous upward flow of water from roots to leaves.",cd:"水从根到叶持续上升的液流。",ch:"Ch7 Transport in plants"},
+{id:"cohesion_tension",t:"cohesion–tension theory",cn:"内聚–张力理论",ed:"The explanation of water movement in xylem by cohesion and tension.",cd:"用内聚力和张力解释木质部水分上升的理论。",ch:"Ch7 Transport in plants"},
+{id:"root_hair_cell",t:"root hair cell",cn:"根毛细胞",ed:"A root cell with a long extension increasing surface area for absorption.",cd:"有细长突起、增大吸收表面积的根细胞。",ch:"Ch7 Transport in plants"},
+{id:"stomata",t:"stomata",cn:"气孔",ed:"Pores in leaf epidermis controlled by guard cells, allowing gas exchange.",cd:"叶表皮由保卫细胞控制、用于气体交换的小孔。",ch:"Ch7 Transport in plants"},
+{id:"guard_cell",t:"guard cell",cn:"保卫细胞",ed:"Cells that open and close stomata by changing their turgidity.",cd:"通过膨压变化开闭气孔的细胞。",ch:"Ch7 Transport in plants"},
+{id:"cuticle",t:"cuticle",cn:"角质层",ed:"The waxy layer on leaves that reduces water loss.",cd:"叶表减少水分散失的蜡质层。",ch:"Ch7 Transport in plants"},
+{id:"palisade_mesophyll",t:"palisade mesophyll",cn:"栅栏组织",ed:"The layer of tall cells where most photosynthesis occurs.",cd:"光合作用主要发生的柱状细胞层。",ch:"Ch7 Transport in plants"},
+{id:"spongy_mesophyll",t:"spongy mesophyll",cn:"海绵组织",ed:"Loose cells with air spaces that allow gas diffusion in the leaf.",cd:"含气腔、便于气体在叶片内扩散的疏松细胞。",ch:"Ch7 Transport in plants"},
+{id:"evaporation",t:"evaporation",cn:"蒸发",ed:"The change of liquid water into water vapour.",cd:"液态水变为水蒸气的过程。",ch:"Ch7 Transport in plants"},
+{id:"sieve_tube",t:"sieve tube",cn:"筛管",ed:"Living cells in phloem with perforated end walls that transport sucrose.",cd:"韧皮部中端壁穿孔、运输蔗糖的活细胞。",ch:"Ch7 Transport in plants"},
+{id:"companion_cell",t:"companion cell",cn:"伴胞",ed:"A cell providing energy and proteins to a neighbouring sieve tube.",cd:"为相邻筛管提供能量和蛋白质的细胞。",ch:"Ch7 Transport in plants"},
+{id:"sieve_plate",t:"sieve plate",cn:"筛板",ed:"The perforated end wall between sieve tube cells.",cd:"筛管细胞之间穿孔的端壁。",ch:"Ch7 Transport in plants"},
+{id:"translocation",t:"translocation",cn:"转运作用",ed:"The transport of sucrose and amino acids in the phloem.",cd:"韧皮部中蔗糖和氨基酸的运输。",ch:"Ch7 Transport in plants"},
+{id:"source",t:"source",cn:"源",ed:"The site producing sucrose, such as a leaf, from which it is loaded into the phloem.",cd:"产生蔗糖并把蔗糖装载入韧皮部的部位，如叶片。",ch:"Ch7 Transport in plants"},
+{id:"sink",t:"sink",cn:"库",ed:"The site using or storing sucrose, such as roots, fruits and seeds.",cd:"利用或储存蔗糖的部位，如根、果实和种子。",ch:"Ch7 Transport in plants"},
+{id:"mass_flow",t:"mass flow",cn:"集流",ed:"Bulk movement of solution driven by pressure differences.",cd:"由压力差驱动的溶液整体流动。",ch:"Ch7 Transport in plants"},
+{id:"lignified",t:"lignified",cn:"木质化的",ed:"Strengthened and waterproofed by lignin, as in xylem vessels.",cd:"被木质素强化并防水处理的，如木质部导管。",ch:"Ch7 Transport in plants"},
+{id:"mineral_ions",t:"mineral ions",cn:"矿质离子",ed:"Dissolved ions such as nitrate and magnesium taken up by roots.",cd:"根吸收的溶解离子，如硝酸根和镁离子。",ch:"Ch7 Transport in plants"},
+{id:"active_uptake",t:"active uptake",cn:"主动吸收",ed:"Absorption of mineral ions by active transport into the root.",cd:"通过主动运输把矿质离子吸收进根内。",ch:"Ch7 Transport in plants"},
+{id:"water_potential_gradient",t:"water potential gradient",cn:"水势梯度",ed:"The difference in water potential driving water movement.",cd:"驱动水分移动的水势差异。",ch:"Ch7 Transport in plants"},
+/* ===== Ch8 Transport in mammals ===== */
+{id:"circulatory_system",t:"circulatory system",cn:"循环系统",ed:"The heart and blood vessels that transport materials around the body.",cd:"由心脏和血管组成、运送物质到全身的系统。",ch:"Ch8 Transport in mammals"},
+{id:"double_circulation",t:"double circulation",cn:"双循环",ed:"Blood passes through the heart twice per circuit: pulmonary and systemic.",cd:"血液每绕一圈两次经过心脏：肺循环和体循环。",ch:"Ch8 Transport in mammals"},
+{id:"atrium",t:"atrium",cn:"心房",ed:"The upper chambers of the heart that receive blood.",cd:"心脏上部接收血液的腔室。",ch:"Ch8 Transport in mammals"},
+{id:"ventricle",t:"ventricle",cn:"心室",ed:"The lower chambers of the heart that pump blood out.",cd:"心脏下部泵出血液的腔室。",ch:"Ch8 Transport in mammals"},
+{id:"septum",t:"septum",cn:"室间隔",ed:"The muscular wall separating the left and right sides of the heart.",cd:"把心脏左右两侧分开的肌肉壁。",ch:"Ch8 Transport in mammals"},
+{id:"atrioventricular_valve",t:"atrioventricular valve",cn:"房室瓣",ed:"A valve between atrium and ventricle preventing backflow.",cd:"心房与心室之间防止血液倒流的瓣膜。",ch:"Ch8 Transport in mammals"},
+{id:"semilunar_valve",t:"semilunar valve",cn:"半月瓣",ed:"A valve at the exit of the ventricles into the arteries.",cd:"心室出口处通向动脉的半月形瓣膜。",ch:"Ch8 Transport in mammals"},
+{id:"aorta",t:"aorta",cn:"主动脉",ed:"The large artery carrying blood from the left ventricle to the body.",cd:"把血液从左心室送往全身的大动脉。",ch:"Ch8 Transport in mammals"},
+{id:"vena_cava",t:"vena cava",cn:"腔静脉",ed:"The large vein returning blood from the body to the right atrium.",cd:"把全身血液送回右心房的大静脉。",ch:"Ch8 Transport in mammals"},
+{id:"pulmonary_artery",t:"pulmonary artery",cn:"肺动脉",ed:"The artery carrying deoxygenated blood from the heart to the lungs.",cd:"把缺氧血从心脏送往肺的动脉。",ch:"Ch8 Transport in mammals"},
+{id:"pulmonary_vein",t:"pulmonary vein",cn:"肺静脉",ed:"The vein carrying oxygenated blood from the lungs to the heart.",cd:"把含氧血从肺送回心脏的静脉。",ch:"Ch8 Transport in mammals"},
+{id:"coronary_artery",t:"coronary artery",cn:"冠状动脉",ed:"An artery supplying the heart muscle with oxygen.",cd:"为心肌供氧的动脉。",ch:"Ch8 Transport in mammals"},
+{id:"artery",t:"artery",cn:"动脉",ed:"A thick-walled vessel carrying blood away from the heart, usually oxygenated.",cd:"把血液送出心脏的厚壁血管，通常含氧。",ch:"Ch8 Transport in mammals"},
+{id:"vein",t:"vein",cn:"静脉",ed:"A vessel carrying blood towards the heart, with valves.",cd:"把血液送回心脏、带有瓣膜的血管。",ch:"Ch8 Transport in mammals"},
+{id:"capillary",t:"capillary",cn:"毛细血管",ed:"A tiny thin-walled vessel where exchange with cells occurs.",cd:"管壁极薄、与细胞进行交换的微小血管。",ch:"Ch8 Transport in mammals"},
+{id:"lumen",t:"lumen",cn:"管腔",ed:"The space inside a blood vessel through which blood flows.",cd:"血管内部供血液流过的空间。",ch:"Ch8 Transport in mammals"},
+{id:"elastic_fibres",t:"elastic fibres",cn:"弹性纤维",ed:"Fibres in artery walls that stretch and recoil with each heartbeat.",cd:"动脉壁中随心跳伸缩的纤维。",ch:"Ch8 Transport in mammals"},
+{id:"smooth_muscle",t:"smooth muscle",cn:"平滑肌",ed:"Muscle in vessel walls that controls their diameter.",cd:"血管壁中控制血管直径的肌肉。",ch:"Ch8 Transport in mammals"},
+{id:"endothelium",t:"endothelium",cn:"内皮",ed:"The single layer of cells lining blood vessels.",cd:"衬在血管内壁的单层细胞。",ch:"Ch8 Transport in mammals"},
+{id:"red_blood_cell",t:"red blood cell",cn:"红细胞",ed:"A biconcave cell containing haemoglobin that carries oxygen.",cd:"含血红蛋白、运输氧气的双凹形细胞。",ch:"Ch8 Transport in mammals"},
+{id:"haemoglobin",t:"haemoglobin",cn:"血红蛋白",ed:"The pigment in red blood cells that combines reversibly with oxygen.",cd:"红细胞中可逆地结合氧气的色素。",ch:"Ch8 Transport in mammals"},
+{id:"platelet",t:"platelet",cn:"血小板",ed:"Small fragments in blood involved in clotting.",cd:"参与凝血的血液小碎片。",ch:"Ch8 Transport in mammals"},
+{id:"plasma",t:"plasma",cn:"血浆",ed:"The liquid part of blood carrying cells, nutrients and waste.",cd:"血液中运输细胞、营养和废物的液体部分。",ch:"Ch8 Transport in mammals"},
+{id:"tissue_fluid",t:"tissue fluid",cn:"组织液",ed:"The fluid formed from plasma that bathes cells.",cd:"由血浆形成、浸浴细胞的液体。",ch:"Ch8 Transport in mammals"},
+{id:"lymph",t:"lymph",cn:"淋巴",ed:"The fluid drained from tissue spaces into lymph vessels.",cd:"组织间隙液流入淋巴管形成的液体。",ch:"Ch8 Transport in mammals"},
+{id:"cardiac_cycle",t:"cardiac cycle",cn:"心动周期",ed:"The sequence of systole and diastole of the heart.",cd:"心脏收缩与舒张的循环过程。",ch:"Ch8 Transport in mammals"},
+{id:"systole",t:"systole",cn:"收缩期",ed:"The contraction phase of the cardiac cycle.",cd:"心动周期中的收缩阶段。",ch:"Ch8 Transport in mammals"},
+{id:"diastole",t:"diastole",cn:"舒张期",ed:"The relaxation phase when the heart refills with blood.",cd:"心脏舒张、重新充盈血液的阶段。",ch:"Ch8 Transport in mammals"},
+/* ===== Ch9 Gas exchange & smoking ===== */
+{id:"gas_exchange",t:"gas exchange",cn:"气体交换",ed:"The diffusion of oxygen and carbon dioxide across a respiratory surface.",cd:"氧气和二氧化碳在呼吸表面上的扩散。",ch:"Ch9 Gas exchange & smoking"},
+{id:"alveolus",t:"alveolus",cn:"肺泡",ed:"A tiny air sac in the lungs with a large surface for gas exchange.",cd:"肺内具有大气体交换表面积的微小气囊。",ch:"Ch9 Gas exchange & smoking"},
+{id:"surfactant",t:"surfactant",cn:"表面活性物质",ed:"A substance lining alveoli that reduces surface tension.",cd:"衬在肺泡内、降低表面张力的物质。",ch:"Ch9 Gas exchange & smoking"},
+{id:"ventilation",t:"ventilation",cn:"通气",ed:"The movement of air into and out of the lungs by inspiration and expiration.",cd:"通过吸气和呼气使空气进出肺部的过程。",ch:"Ch9 Gas exchange & smoking"},
+{id:"inspiration",t:"inspiration",cn:"吸气",ed:"Drawing air into the lungs as the diaphragm contracts.",cd:"膈肌收缩把空气吸入肺部的过程。",ch:"Ch9 Gas exchange & smoking"},
+{id:"expiration",t:"expiration",cn:"呼气",ed:"Pushing air out of the lungs as the diaphragm relaxes.",cd:"膈肌舒张把空气排出肺部的过程。",ch:"Ch9 Gas exchange & smoking"},
+{id:"intercostal_muscle",t:"intercostal muscle",cn:"肋间肌",ed:"Muscles between the ribs that move the rib cage during breathing.",cd:"肋骨间在呼吸时移动胸廓的肌肉。",ch:"Ch9 Gas exchange & smoking"},
+{id:"diaphragm",t:"diaphragm",cn:"膈",ed:"The dome-shaped muscle separating thorax and abdomen, central to breathing.",cd:"分隔胸腔与腹腔、呼吸中关键的穹顶形肌肉。",ch:"Ch9 Gas exchange & smoking"},
+{id:"trachea",t:"trachea",cn:"气管",ed:"The windpipe reinforced by C-shaped cartilage rings.",cd:"由C形软骨环支撑的气道。",ch:"Ch9 Gas exchange & smoking"},
+{id:"bronchus",t:"bronchus",cn:"支气管",ed:"One of the two main branches of the trachea entering the lungs.",cd:"气管进入肺的两条主要分支之一。",ch:"Ch9 Gas exchange & smoking"},
+{id:"bronchiole",t:"bronchiole",cn:"细支气管",ed:"Small air passages in the lungs that lead to alveoli.",cd:"肺中通向肺泡的小气道。",ch:"Ch9 Gas exchange & smoking"},
+{id:"pleural_membrane",t:"pleural membrane",cn:"胸膜",ed:"The membranes lining the chest wall and lungs, allowing smooth movement.",cd:"衬于胸壁和肺表面、使肺平滑运动的膜。",ch:"Ch9 Gas exchange & smoking"},
+{id:"tidal_volume",t:"tidal volume",cn:"潮气量",ed:"The volume of air breathed in and out in one normal breath.",cd:"平静呼吸时每次吸入和呼出的空气量。",ch:"Ch9 Gas exchange & smoking"},
+{id:"vital_capacity",t:"vital capacity",cn:"肺活量",ed:"The maximum volume of air that can be breathed out after a maximum breath in.",cd:"尽力吸气后能呼出的最大空气量。",ch:"Ch9 Gas exchange & smoking"},
+{id:"spirometer",t:"spirometer",cn:"肺活量计",ed:"An instrument that measures volumes of air breathed in and out.",cd:"测量吸气和呼气量的仪器。",ch:"Ch9 Gas exchange & smoking"},
+{id:"smoking",t:"smoking",cn:"吸烟",ed:"Inhaling smoke from burning tobacco, which damages the lungs.",cd:"吸入烟草燃烧产生的烟雾，会损害肺部。",ch:"Ch9 Gas exchange & smoking"},
+{id:"tar",t:"tar",cn:"焦油",ed:"The sticky black substance in tobacco smoke containing carcinogens.",cd:"烟草烟雾中含致癌物质的黏性黑色物质。",ch:"Ch9 Gas exchange & smoking"},
+{id:"nicotine",t:"nicotine",cn:"尼古丁",ed:"The addictive stimulant in tobacco smoke that raises heart rate.",cd:"烟草烟雾中使人上瘾、加快心率的刺激物。",ch:"Ch9 Gas exchange & smoking"},
+{id:"carbon_monoxide",t:"carbon monoxide",cn:"一氧化碳",ed:"A poisonous gas in smoke that combines with haemoglobin, reducing oxygen transport.",cd:"烟雾中与血红蛋白结合、降低携氧能力的有毒气体。",ch:"Ch9 Gas exchange & smoking"},
+{id:"carcinogen",t:"carcinogen",cn:"致癌物",ed:"A substance that can cause cancer.",cd:"能导致癌症的物质。",ch:"Ch9 Gas exchange & smoking"},
+{id:"emphysema",t:"emphysema",cn:"肺气肿",ed:"Lung damage with reduced surface area for gas exchange, from smoking.",cd:"吸烟导致肺泡表面积减少、气体交换受损的肺病。",ch:"Ch9 Gas exchange & smoking"},
+{id:"chronic_bronchitis",t:"chronic bronchitis",cn:"慢性支气管炎",ed:"Long-term inflammation of the bronchi, common in smokers.",cd:"吸烟者常见的支气管长期炎症。",ch:"Ch9 Gas exchange & smoking"},
+{id:"ciliated_epithelium",t:"ciliated epithelium",cn:"纤毛上皮",ed:"Cells with cilia that sweep mucus out of the airways.",cd:"用纤毛把黏液扫出气道的细胞层。",ch:"Ch9 Gas exchange & smoking"},
+{id:"goblet_cell",t:"goblet cell",cn:"杯状细胞",ed:"A cell that secretes mucus in the airways.",cd:"在气道中分泌黏液的细胞。",ch:"Ch9 Gas exchange & smoking"},
+{id:"mucus",t:"mucus",cn:"黏液",ed:"A sticky fluid that traps dust and pathogens in the airways.",cd:"在气道中黏住灰尘和病原体的黏性液体。",ch:"Ch9 Gas exchange & smoking"},
+{id:"partial_pressure",t:"partial pressure",cn:"分压",ed:"The pressure exerted by one gas in a mixture, driving diffusion.",cd:"混合气体中某一气体产生的压力，驱动扩散。",ch:"Ch9 Gas exchange & smoking"},
+/* ===== Ch10 Infectious disease ===== */
+{id:"pathogen",t:"pathogen",cn:"病原体",ed:"A microorganism that causes disease.",cd:"引起疾病的微生物。",ch:"Ch10 Infectious disease"},
+{id:"bacteria",t:"bacteria",cn:"细菌",ed:"Single-celled prokaryotes, some of which cause disease.",cd:"单细胞原核生物，部分能引起疾病。",ch:"Ch10 Infectious disease"},
+{id:"virus",t:"virus",cn:"病毒",ed:"A non-cellular infectious agent that reproduces inside host cells.",cd:"在宿主细胞内繁殖的非细胞病原体。",ch:"Ch10 Infectious disease"},
+{id:"fungus",t:"fungus",cn:"真菌",ed:"A eukaryotic organism with chitin cell walls, some cause disease.",cd:"细胞壁含几丁质的真核生物，部分致病。",ch:"Ch10 Infectious disease"},
+{id:"protozoan",t:"protozoan",cn:"原生动物",ed:"A single-celled eukaryotic pathogen, such as the malaria parasite.",cd:"单细胞真核病原体，如疟原虫。",ch:"Ch10 Infectious disease"},
+{id:"transmission",t:"transmission",cn:"传播",ed:"The way a pathogen spreads from one host to another.",cd:"病原体从一个宿主传到另一个宿主的途径。",ch:"Ch10 Infectious disease"},
+{id:"droplet_infection",t:"droplet infection",cn:"飞沫感染",ed:"Spread by tiny droplets in the air when an infected person coughs or sneezes.",cd:"感染者咳嗽或打喷嚏时经空气飞沫传播。",ch:"Ch10 Infectious disease"},
+{id:"vector",t:"vector",cn:"传播媒介",ed:"An organism, such as a mosquito, that carries a pathogen between hosts.",cd:"在宿主之间携带病原体的生物，如蚊子。",ch:"Ch10 Infectious disease"},
+{id:"contaminated",t:"contaminated",cn:"受污染的",ed:"Made impure or infected, such as water with faeces.",cd:"被弄脏或感染的，如被粪便污染的水。",ch:"Ch10 Infectious disease"},
+{id:"antibiotics",t:"antibiotics",cn:"抗生素",ed:"Substances that kill bacteria or stop them growing.",cd:"能杀死细菌或抑制其生长的物质。",ch:"Ch10 Infectious disease"},
+{id:"antibiotic_resistance",t:"antibiotic resistance",cn:"抗生素耐药性",ed:"The ability of bacteria to survive antibiotics, selected for by natural selection.",cd:"细菌在抗生素存在下存活的能力，经自然选择产生。",ch:"Ch10 Infectious disease"},
+{id:"mrsa",t:"MRSA",cn:"耐甲氧西林金黄色葡萄球菌",ed:"A strain of Staphylococcus aureus resistant to methicillin.",cd:"对甲氧西林耐药的金黄色葡萄球菌菌株。",ch:"Ch10 Infectious disease"},
+{id:"penicillin",t:"penicillin",cn:"青霉素",ed:"An antibiotic made by the fungus Penicillium.",cd:"由青霉菌产生的抗生素。",ch:"Ch10 Infectious disease"},
+{id:"epidemic",t:"epidemic",cn:"流行病",ed:"A rapid spread of disease through many people in a region.",cd:"疾病在某一地区迅速蔓延、感染许多人。",ch:"Ch10 Infectious disease"},
+{id:"pandemic",t:"pandemic",cn:"大流行",ed:"An epidemic spreading over several countries or the world.",cd:"蔓延到多国或全球的流行病。",ch:"Ch10 Infectious disease"},
+{id:"cholera",t:"cholera",cn:"霍乱",ed:"A disease caused by Vibrio cholerae, leading to severe diarrhoea.",cd:"由霍乱弧菌引起、导致严重腹泻的疾病。",ch:"Ch10 Infectious disease"},
+{id:"tuberculosis",t:"tuberculosis",cn:"结核病",ed:"A lung disease caused by Mycobacterium tuberculosis.",cd:"由结核分枝杆菌引起的肺部疾病。",ch:"Ch10 Infectious disease"},
+{id:"hiv",t:"HIV",cn:"人类免疫缺陷病毒",ed:"A virus that attacks helper T cells and can cause AIDS.",cd:"攻击辅助性T细胞、可导致艾滋病的病毒。",ch:"Ch10 Infectious disease"},
+{id:"aids",t:"AIDS",cn:"艾滋病",ed:"Acquired immune deficiency syndrome caused by HIV.",cd:"由HIV引起的获得性免疫缺陷综合征。",ch:"Ch10 Infectious disease"},
+{id:"malaria",t:"malaria",cn:"疟疾",ed:"A disease caused by Plasmodium, transmitted by mosquitoes.",cd:"由疟原虫引起、经蚊子传播的疾病。",ch:"Ch10 Infectious disease"},
+{id:"vaccination",t:"vaccination",cn:"接种疫苗",ed:"Giving a vaccine to make the body immune to a disease.",cd:"接种疫苗使身体对疾病产生免疫力。",ch:"Ch10 Infectious disease"},
+{id:"hygiene",t:"hygiene",cn:"卫生",ed:"Practices that reduce the spread of disease, such as washing hands.",cd:"减少疾病传播的做法，如洗手。",ch:"Ch10 Infectious disease"},
+{id:"quarantine",t:"quarantine",cn:"隔离检疫",ed:"Separating infected or exposed people to stop the spread of disease.",cd:"把感染者或接触者隔离开以阻止疾病传播。",ch:"Ch10 Infectious disease"},
+{id:"antiviral",t:"antiviral drug",cn:"抗病毒药物",ed:"A drug that inhibits the reproduction of viruses.",cd:"抑制病毒繁殖的药物。",ch:"Ch10 Infectious disease"},
+/* ===== Ch11 Immunity ===== */
+{id:"immune_system",t:"immune system",cn:"免疫系统",ed:"The body's defences against pathogens, including cells and proteins.",cd:"身体抵御病原体的防御体系，包括细胞和蛋白质。",ch:"Ch11 Immunity"},
+{id:"phagocyte",t:"phagocyte",cn:"吞噬细胞",ed:"A white blood cell that engulfs and digests pathogens.",cd:"吞入并消化病原体的白细胞。",ch:"Ch11 Immunity"},
+{id:"antigen",t:"antigen",cn:"抗原",ed:"A molecule on a pathogen's surface that triggers an immune response.",cd:"病原体表面引起免疫反应的分子。",ch:"Ch11 Immunity"},
+{id:"antibody",t:"antibody",cn:"抗体",ed:"A protein made by lymphocytes that binds specifically to an antigen.",cd:"淋巴细胞产生、特异性结合抗原的蛋白质。",ch:"Ch11 Immunity"},
+{id:"lymphocyte",t:"lymphocyte",cn:"淋巴细胞",ed:"A white blood cell that produces antibodies, including B and T cells.",cd:"产生抗体的白细胞，包括B细胞和T细胞。",ch:"Ch11 Immunity"},
+{id:"b_cell",t:"B cell",cn:"B细胞",ed:"A lymphocyte that makes antibodies against a specific antigen.",cd:"针对特定抗原产生抗体的淋巴细胞。",ch:"Ch11 Immunity"},
+{id:"t_cell",t:"T cell",cn:"T细胞",ed:"A lymphocyte that coordinates the immune response or kills infected cells.",cd:"协调免疫反应或杀伤被感染细胞的淋巴细胞。",ch:"Ch11 Immunity"},
+{id:"plasma_cell",t:"plasma cell",cn:"浆细胞",ed:"A B cell that secretes large amounts of antibody.",cd:"大量分泌抗体的B细胞。",ch:"Ch11 Immunity"},
+{id:"memory_cell",t:"memory cell",cn:"记忆细胞",ed:"A long-lived cell giving rapid response to a second infection.",cd:"对再次感染能快速反应的长寿命细胞。",ch:"Ch11 Immunity"},
+{id:"agglutination",t:"agglutination",cn:"凝集",ed:"Clumping of pathogens by antibodies so they are easier to destroy.",cd:"抗体使病原体凝集成团、更易被清除。",ch:"Ch11 Immunity"},
+{id:"antigen_antibody_complex",t:"antigen–antibody complex",cn:"抗原–抗体复合物",ed:"The structure formed when an antibody binds to its antigen.",cd:"抗体与其抗原结合形成的结构。",ch:"Ch11 Immunity"},
+{id:"active_immunity",t:"active immunity",cn:"主动免疫",ed:"Immunity from antibodies the body makes itself after infection or vaccination.",cd:"机体感染或接种后自身产生抗体的免疫。",ch:"Ch11 Immunity"},
+{id:"passive_immunity",t:"passive immunity",cn:"被动免疫",ed:"Immunity from antibodies received from outside, such as from the mother.",cd:"从体外获得抗体而得到的免疫，如来自母体。",ch:"Ch11 Immunity"},
+{id:"natural_immunity",t:"natural immunity",cn:"天然免疫",ed:"Immunity acquired through natural means, such as infection.",cd:"通过自然途径获得的免疫，如感染。",ch:"Ch11 Immunity"},
+{id:"artificial_immunity",t:"artificial immunity",cn:"人工免疫",ed:"Immunity acquired through medical means, such as vaccination.",cd:"通过医疗手段获得的免疫，如接种疫苗。",ch:"Ch11 Immunity"},
+{id:"vaccine",t:"vaccine",cn:"疫苗",ed:"A preparation of dead or weakened pathogens or their antigens.",cd:"由死或弱化的病原体或其抗原制成的制剂。",ch:"Ch11 Immunity"},
+{id:"herd_immunity",t:"herd immunity",cn:"群体免疫",ed:"Protection of the unvaccinated because most people are immune.",cd:"因大多数人免疫而使未接种者也受到保护。",ch:"Ch11 Immunity"},
+{id:"monoclonal_antibody",t:"monoclonal antibody",cn:"单克隆抗体",ed:"Identical antibodies made from one clone of plasma cells, used in tests.",cd:"由同一浆细胞克隆产生、用于检测的相同抗体。",ch:"Ch11 Immunity"},
+{id:"specificity",t:"specificity",cn:"专一性",ed:"Each antibody or response targets only one antigen.",cd:"每个抗体或免疫反应只针对一种抗原。",ch:"Ch11 Immunity"},
+{id:"clonal_selection",t:"clonal selection",cn:"克隆选择",ed:"The activation of one specific lymphocyte by its matching antigen.",cd:"特定抗原激活与其匹配的特异淋巴细胞的机制。",ch:"Ch11 Immunity"},
+{id:"immune_response",t:"immune response",cn:"免疫应答",ed:"The body's reaction to an antigen, producing antibodies.",cd:"机体对抗原作出的、产生抗体的反应。",ch:"Ch11 Immunity"},
+{id:"immunity",t:"immunity",cn:"免疫",ed:"The ability to resist infection by a specific pathogen.",cd:"抵抗特定病原体感染的能力。",ch:"Ch11 Immunity"},
+{id:"defence",t:"defence",cn:"防御",ed:"The mechanisms the body uses to stop pathogens entering.",cd:"机体阻止病原体入侵的机制。",ch:"Ch11 Immunity"}
+];
+var GRP=[
+["Ch1","Cell structure","🔬"],
+["Ch2","Biological molecules","🍬"],
+["Ch3","Enzymes","🧪"],
+["Ch4","Cell membranes & transport","🛡️"],
+["Ch5","The mitotic cell cycle","♻️"],
+["Ch6","Nucleic acids & protein synthesis","🧬"],
+["Ch7","Transport in plants","🌱"],
+["Ch8","Transport in mammals","❤️"],
+["Ch9","Gas exchange & smoking","🫁"],
+["Ch10","Infectious disease","🦠"],
+["Ch11","Immunity","💪"]
+];
+/* ======= 翻译常用答题句（AS 9700 简答题/6分题答题模板） ======= */
+var SENTS=[
+/* Ch1 */
+{id:"s1",ch:"Ch1 Cell structure",en:"The nucleus contains chromosomes, which carry the genetic information of the cell.",cn:"细胞核含有染色体，染色体携带细胞的遗传信息。"},
+{id:"s2",ch:"Ch1 Cell structure",en:"Mitochondria are the site of aerobic respiration, where ATP is released.",cn:"线粒体是有氧呼吸的场所，在此释放ATP。"},
+{id:"s3",ch:"Ch1 Cell structure",en:"Ribosomes are the site of protein synthesis.",cn:"核糖体是蛋白质合成的场所。"},
+{id:"s4",ch:"Ch1 Cell structure",en:"Prokaryotic cells do not have a nucleus or membrane-bound organelles.",cn:"原核细胞没有细胞核，也没有膜包被的细胞器。"},
+{id:"s5",ch:"Ch1 Cell structure",en:"A light microscope has a lower magnification and resolution than an electron microscope.",cn:"光学显微镜的放大倍数和分辨率都比电子显微镜低。"},
+/* Ch2 */
+{id:"s6",ch:"Ch2 Biological molecules",en:"Water is a good solvent, so many substances can dissolve in it for transport.",cn:"水是良好的溶剂，因此许多物质能溶解在其中以便运输。"},
+{id:"s7",ch:"Ch2 Biological molecules",en:"Starch is the main storage carbohydrate in plants, while glycogen is the storage carbohydrate in animals.",cn:"淀粉是植物主要的储存性碳水化合物，而糖原是动物的储存性碳水化合物。"},
+{id:"s8",ch:"Ch2 Biological molecules",en:"Proteins are made up of amino acids joined together by peptide bonds.",cn:"蛋白质由通过肽键连接在一起的氨基酸组成。"},
+{id:"s9",ch:"Ch2 Biological molecules",en:"Cellulose forms the cell wall and gives strength and support to plant cells.",cn:"纤维素构成细胞壁，为植物细胞提供强度和支撑。"},
+{id:"s10",ch:"Ch2 Biological molecules",en:"A reducing sugar can reduce Benedict's solution from blue to orange-red on heating.",cn:"还原糖在加热时能把本尼迪克特试剂从蓝色还原为橙红色。"},
+{id:"s11",ch:"Ch2 Biological molecules",en:"A triglyceride is made of one glycerol molecule and three fatty acid molecules.",cn:"甘油三酯由一个甘油分子和三个脂肪酸分子组成。"},
+/* Ch3 */
+{id:"s12",ch:"Ch3 Enzymes",en:"An enzyme is a biological catalyst that speeds up the rate of a reaction without being used up.",cn:"酶是一种生物催化剂，能加快反应速率而不被消耗。"},
+{id:"s13",ch:"Ch3 Enzymes",en:"The substrate fits into the active site of the enzyme, forming an enzyme–substrate complex.",cn:"底物与酶的活性位点结合，形成酶–底物复合物。"},
+{id:"s14",ch:"Ch3 Enzymes",en:"Enzymes are specific; each enzyme only catalyses one reaction or type of reaction.",cn:"酶具有专一性，每种酶只催化一种反应或一类反应。"},
+{id:"s15",ch:"Ch3 Enzymes",en:"High temperatures denature the enzyme by changing the shape of its active site.",cn:"高温改变酶活性位点的形状，使酶变性。"},
+{id:"s16",ch:"Ch3 Enzymes",en:"A competitive inhibitor has a similar shape to the substrate and blocks the active site.",cn:"竞争性抑制剂的形状与底物相似，能占据活性位点。"},
+{id:"s17",ch:"Ch3 Enzymes",en:"Immobilised enzymes can be used many times and are easy to separate from the products.",cn:"固定化酶可以重复使用，并且容易与产物分离。"},
+/* Ch4 */
+{id:"s18",ch:"Ch4 Cell membranes & transport",en:"Diffusion is the net movement of particles from a region of higher concentration to a region of lower concentration.",cn:"扩散是粒子从高浓度区域向低浓度区域的净移动。"},
+{id:"s19",ch:"Ch4 Cell membranes & transport",en:"Osmosis is the net movement of water molecules across a partially permeable membrane from a region of higher water potential to a region of lower water potential.",cn:"渗透是水分子经部分透性膜从水势较高区域向水势较低区域的净移动。"},
+{id:"s20",ch:"Ch4 Cell membranes & transport",en:"Active transport moves substances against the concentration gradient and requires energy from ATP.",cn:"主动运输逆浓度梯度运输物质，需要消耗ATP中的能量。"},
+{id:"s21",ch:"Ch4 Cell membranes & transport",en:"The cell membrane is described as a fluid mosaic model.",cn:"细胞膜可以用流体镶嵌模型来描述。"},
+{id:"s22",ch:"Ch4 Cell membranes & transport",en:"Facilitated diffusion uses channel proteins or carrier proteins but does not require energy.",cn:"易化扩散借助通道蛋白或载体蛋白，但不需要能量。"},
+{id:"s23",ch:"Ch4 Cell membranes & transport",en:"A plant cell becomes turgid when it takes in water by osmosis.",cn:"植物细胞通过渗透作用吸水后会变得膨胀。"},
+/* Ch5 */
+{id:"s24",ch:"Ch5 The mitotic cell cycle",en:"Mitosis produces two genetically identical daughter cells.",cn:"有丝分裂产生两个遗传上相同的子细胞。"},
+{id:"s25",ch:"Ch5 The mitotic cell cycle",en:"During interphase, the cell grows and replicates its DNA in preparation for division.",cn:"分裂间期细胞生长并复制DNA，为分裂做准备。"},
+{id:"s26",ch:"Ch5 The mitotic cell cycle",en:"The chromosomes line up at the equator during metaphase.",cn:"中期时染色体排列在赤道板上。"},
+{id:"s27",ch:"Ch5 The mitotic cell cycle",en:"Cytokinesis divides the cytoplasm to complete the cell cycle.",cn:"胞质分裂分开细胞质，从而完成细胞周期。"},
+{id:"s28",ch:"Ch5 The mitotic cell cycle",en:"Uncontrolled cell division can lead to the formation of a tumour and cancer.",cn:"不受控制的细胞分裂会导致肿瘤和癌症的形成。"},
+/* Ch6 */
+{id:"s29",ch:"Ch6 Nucleic acids & protein synthesis",en:"DNA is a double helix made up of two polynucleotide strands held together by hydrogen bonds.",cn:"DNA是由两条多核苷酸链通过氢键连接而成的双螺旋。"},
+{id:"s30",ch:"Ch6 Nucleic acids & protein synthesis",en:"A nucleotide is made up of a phosphate group, a pentose sugar and a nitrogenous base.",cn:"核苷酸由一个磷酸基团、一个戊糖和一个含氮碱基组成。"},
+{id:"s31",ch:"Ch6 Nucleic acids & protein synthesis",en:"In transcription, the DNA code is copied into messenger RNA.",cn:"转录过程中，DNA的密码被复制到信使RNA中。"},
+{id:"s32",ch:"Ch6 Nucleic acids & protein synthesis",en:"During translation, transfer RNA brings amino acids to the ribosome in the correct order.",cn:"翻译过程中，转运RNA按正确顺序把氨基酸带到核糖体。"},
+{id:"s33",ch:"Ch6 Nucleic acids & protein synthesis",en:"A sequence of three bases, called a codon, codes for one amino acid.",cn:"由三个碱基组成的序列称为密码子，编码一个氨基酸。"},
+{id:"s34",ch:"Ch6 Nucleic acids & protein synthesis",en:"A gene is a length of DNA that codes for a polypeptide.",cn:"基因是一段编码多肽的DNA。"},
+/* Ch7 */
+{id:"s35",ch:"Ch7 Transport in plants",en:"Transpiration is the loss of water vapour from the leaves, mainly through the stomata.",cn:"蒸腾作用是水蒸气主要通过气孔从叶片散失的过程。"},
+{id:"s36",ch:"Ch7 Transport in plants",en:"Water moves up the xylem by the cohesion–tension mechanism.",cn:"水分通过内聚–张力机制沿木质部上升。"},
+{id:"s37",ch:"Ch7 Transport in plants",en:"The transpiration stream is driven by evaporation of water from the leaves.",cn:"蒸腾流由叶片水分的蒸发所驱动。"},
+{id:"s38",ch:"Ch7 Transport in plants",en:"Translocation transports sucrose and amino acids in the phloem from the source to the sink.",cn:"转运作用在韧皮部中把蔗糖和氨基酸从源运到库。"},
+{id:"s39",ch:"Ch7 Transport in plants",en:"Guard cells control the opening and closing of the stomata.",cn:"保卫细胞控制气孔的开放与关闭。"},
+{id:"s40",ch:"Ch7 Transport in plants",en:"Root hair cells have a large surface area, which increases the rate of absorption of water and mineral ions.",cn:"根毛细胞具有巨大的表面积，这提高了水和矿质离子的吸收速率。"},
+/* Ch8 */
+{id:"s41",ch:"Ch8 Transport in mammals",en:"The heart pumps blood around the body through a double circulation.",cn:"心脏通过双循环把血液泵送到全身。"},
+{id:"s42",ch:"Ch8 Transport in mammals",en:"The left ventricle has a thicker muscular wall because it pumps blood to the whole body.",cn:"左心室的肌肉壁更厚，因为它要把血液泵送到全身。"},
+{id:"s43",ch:"Ch8 Transport in mammals",en:"Red blood cells transport oxygen combined with haemoglobin.",cn:"红细胞运输与血红蛋白结合的氧气。"},
+{id:"s44",ch:"Ch8 Transport in mammals",en:"Platelets help to clot the blood at a wound.",cn:"血小板帮助在伤口处凝固血液。"},
+{id:"s45",ch:"Ch8 Transport in mammals",en:"The valves in the heart prevent the backflow of blood.",cn:"心脏中的瓣膜防止血液倒流。"},
+{id:"s46",ch:"Ch8 Transport in mammals",en:"Tissue fluid is formed by the filtration of plasma out of the capillaries.",cn:"组织液是血浆从毛细血管滤出而形成的。"},
+/* Ch9 */
+{id:"s47",ch:"Ch9 Gas exchange & smoking",en:"Alveoli have a large surface area and thin walls, which make gas exchange efficient.",cn:"肺泡具有巨大的表面积和很薄的壁，使气体交换高效进行。"},
+{id:"s48",ch:"Ch9 Gas exchange & smoking",en:"Ventilation is the process of inspiration and expiration, moving air in and out of the lungs.",cn:"通气是吸气和呼气的过程，使空气进出肺部。"},
+{id:"s49",ch:"Ch9 Gas exchange & smoking",en:"Nicotine in tobacco smoke is addictive and increases the heart rate.",cn:"烟草烟雾中的尼古丁使人上瘾并使心跳加快。"},
+{id:"s50",ch:"Ch9 Gas exchange & smoking",en:"Carbon monoxide combines with haemoglobin, reducing the oxygen-carrying capacity of the blood.",cn:"一氧化碳与血红蛋白结合，降低血液的携氧能力。"},
+{id:"s51",ch:"Ch9 Gas exchange & smoking",en:"Tar in cigarette smoke contains carcinogens, which can cause lung cancer.",cn:"香烟烟雾中的焦油含有致癌物，可能导致肺癌。"},
+{id:"s52",ch:"Ch9 Gas exchange & smoking",en:"Smoking damages the cilia and increases mucus, causing chronic bronchitis.",cn:"吸烟损伤纤毛并增加黏液，导致慢性支气管炎。"},
+/* Ch10 */
+{id:"s53",ch:"Ch10 Infectious disease",en:"A pathogen is a microorganism that causes disease.",cn:"病原体是引起疾病的微生物。"},
+{id:"s54",ch:"Ch10 Infectious disease",en:"Infectious diseases can be transmitted by droplet infection and by direct contact.",cn:"传染病可通过飞沫传播和直接接触传播。"},
+{id:"s55",ch:"Ch10 Infectious disease",en:"Bacteria can develop antibiotic resistance through natural selection.",cn:"细菌能通过自然选择产生抗生素耐药性。"},
+{id:"s56",ch:"Ch10 Infectious disease",en:"HIV attacks and destroys helper T cells, weakening the immune system.",cn:"HIV攻击并破坏辅助性T细胞，从而削弱免疫系统。"},
+{id:"s57",ch:"Ch10 Infectious disease",en:"Cholera is caused by the bacterium Vibrio cholerae and causes severe diarrhoea and dehydration.",cn:"霍乱由霍乱弧菌引起，导致严重腹泻和脱水。"},
+/* Ch11 */
+{id:"s58",ch:"Ch11 Immunity",en:"Antibodies are proteins produced by lymphocytes that bind to specific antigens.",cn:"抗体是淋巴细胞产生的、能与特定抗原结合的蛋白质。"},
+{id:"s59",ch:"Ch11 Immunity",en:"Phagocytes engulf and digest pathogens by phagocytosis.",cn:"吞噬细胞通过吞噬作用包围并消化病原体。"},
+{id:"s60",ch:"Ch11 Immunity",en:"Active immunity develops when the body makes its own antibodies after infection or vaccination.",cn:"主动免疫是机体在感染或接种疫苗后自己产生抗体而形成的。"},
+{id:"s61",ch:"Ch11 Immunity",en:"Vaccination stimulates the immune system to produce memory cells.",cn:"接种疫苗会刺激免疫系统产生记忆细胞。"},
+{id:"s62",ch:"Ch11 Immunity",en:"Monoclonal antibodies can be used to detect specific substances in medical testing.",cn:"单克隆抗体可用于医学检测中检测特定物质。"}
+];
+
+
+
+/* ======= 本地状态（localStorage） ======= */
+var K_NAME="BM9700Name",K_GOAL="BM9700Goal",K_P="BM9700Progress",K_PENDING="BM9700Pending";
+function tStr(){var d=new Date();return d.getFullYear()+"-"+("0"+(d.getMonth()+1)).slice(-2)+"-"+("0"+d.getDate()).slice(-2);}
+function defP(){return {name:"",updated:"",goal:10,day:"",todayIds:[],learnedIds:[],quizToday:0,quizTodayC:0,quizTotal:0,quizTotalC:0,wrong:[],wrongSent:[],history:[]};}
+function gP(){try{var p=JSON.parse(localStorage.getItem(K_P));if(p&&typeof p==="object")return p;}catch(e){}return defP();}
+function sP(p){try{localStorage.setItem(K_P,JSON.stringify(p));}catch(e){}}
+function newDay(){var p=gP();var t=tStr();if(p.day!==t){if(p.day)p.history.push({d:p.day,g:p.goal,l:p.todayIds.length,q:p.quizToday,qc:p.quizTodayC});if(p.history.length>60)p.history.shift();p.day=t;p.todayIds=[];p.quizToday=0;p.quizTodayC=0;sP(p);}return p;}
+function gW(p){return p.wrong;}
+function addWrong(p,id){for(var i=0;i<p.wrong.length;i++){if(p.wrong[i].id===id){p.wrong[i].n++;return;}}p.wrong.push({id:id,n:1});}
+function decWrong(p,id){for(var i=0;i<p.wrong.length;i++){if(p.wrong[i].id===id){p.wrong[i].n--;if(p.wrong[i].n<=0)p.wrong.splice(i,1);return;}}}
+function addWrongSent(p,id){for(var i=0;i<p.wrongSent.length;i++){if(p.wrongSent[i].id===id){p.wrongSent[i].n++;return;}}p.wrongSent.push({id:id,n:1});}
+function decWrongSent(p,id){for(var i=0;i<p.wrongSent.length;i++){if(p.wrongSent[i].id===id){p.wrongSent[i].n--;if(p.wrongSent[i].n<=0)p.wrongSent.splice(i,1);return;}}}
+function sById(id){for(var i=0;i<SENTS.length;i++){if(SENTS[i].id===id)return SENTS[i];}return null;}
+function wById(id){for(var i=0;i<WORDS.length;i++){if(WORDS[i].id===id)return WORDS[i];}return null;}
+function shuffle(a){for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;}return a;}
+function esc(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
+function grpName(w){return String(w.ch||"").replace(/^Ch\d+\s*/,"");} /* "Ch1 Cells" -> "Cells" */
+
+/* ======= 登录门 ======= */
+function bioLoadName(){BIO_STUDENT=localStorage.getItem(K_NAME)||"";}
+function bioAskName(){
+  bioLoadName();
+  if(BIO_STUDENT){
+    var inAllow=false;
+    for(var i=0;i<BIO_ALLOW.length;i++){if(BIO_ALLOW[i].toLowerCase()===BIO_STUDENT.toLowerCase()){inAllow=true;break;}}
+    if(inAllow){return;}
+    BIO_STUDENT="";
+    try{localStorage.removeItem(K_NAME);}catch(e){}
+  }
+  var g=document.getElementById("bioNameGate");
+  if(!g){
+    g=document.createElement("div");g.id="bioNameGate";
+    g.innerHTML='<div class=bx><h2>🧠 BioMemo9700</h2><p>请输入你的名字<br><span style="font-size:0.72rem">每日背词、Quiz 检测，进度同步云端</span></p><input id="bioNameInp" maxlength="20" placeholder="请输入你的名字" autocomplete="off"><div id="bioNameErr" style="display:none;color:var(--wrong);font-size:0.8rem;margin-top:10px;text-align:center;font-weight:600"></div><button class="btn bp bio-btn" onclick="bioSetName()">🚀 开始</button></div>';
+    document.body.appendChild(g);
+    var inp=document.getElementById("bioNameInp");
+    if(inp){inp.focus();inp.addEventListener("keydown",function(e){if(e.key==="Enter")bioSetName();});}
+  }
+  g.style.display="flex";
+}
+function bioSetName(){
+  var v=(document.getElementById("bioNameInp").value||"").trim();
+  if(!v)return;
+  var canon=null;
+  for(var i=0;i<BIO_ALLOW.length;i++){if(BIO_ALLOW[i].toLowerCase()===v.toLowerCase()){canon=BIO_ALLOW[i];break;}}
+  if(!canon){
+    var err=document.getElementById("bioNameErr");
+    if(err){err.style.display="block";err.textContent="⚠️ 仅限指定同学使用";}
+    return;
+  }
+  BIO_STUDENT=canon;
+  try{localStorage.setItem(K_NAME,canon);}catch(e){}
+  var g=document.getElementById("bioNameGate");if(g)g.style.display="none";
+  var p=gP();p.name=canon;sP(p);
+  renderHome();
+  bioPushNow();
+}
+function bioLogout(){BIO_STUDENT="";try{localStorage.removeItem(K_NAME);}catch(e){}renderHome();bioAskName();}
+
+/* ======= 首页 ======= */
+function renderHome(){
+  var pc=document.getElementById("pc");
+  var p=newDay();
+  var goal=Math.max(1,Math.min(30,parseInt(p.goal)||10));
+  var accToday=p.quizToday?(Math.round(p.quizTodayC/p.quizToday*100))+"%":"—";
+  var wrongN=p.wrong.length;var sentN=p.wrongSent?p.wrongSent.length:0;
+  var h="";
+  h+='<div class="card"><h3>👋 你好，'+esc(BIO_STUDENT)+'</h3>';
+  h+='<div class="kpi">';
+  h+='<div class="it"><div class="lb">今日已背</div><div class="vl" style="color:var(--accent)">'+p.todayIds.length+'/'+goal+'</div></div>';
+  h+='<div class="it"><div class="lb">累计已背</div><div class="vl">'+p.learnedIds.length+'</div></div>';
+  h+='<div class="it"><div class="lb">今日Quiz</div><div class="vl" style="color:'+(p.quizTodayC>0&&p.quizTodayC/p.quizToday<0.6?'var(--wrong)':'var(--correct)')+'">'+accToday+'</div></div>';
+  h+='<div class="it"><div class="lb">错词本</div><div class="vl" style="color:'+(wrongN?'var(--wrong)':'var(--correct)')+'">'+wrongN+'</div></div>';
+  h+='<div class="it"><div class="lb">句错题</div><div class="vl" style="color:'+(sentN?'var(--wrong)':'var(--correct)')+'">'+sentN+'</div></div>';
+  h+='</div>';
+  h+='<div class="btn-row">';
+  h+='<button class="btn" onclick="bmStudySetup()">📖 开始学习</button>';
+  h+='<button class="btn orange" onclick="bmQuizSetup()">📝 Quiz 检测</button>';
+  h+='<button class="btn red" onclick="bmWrongBook()">❌ 错词本 ('+wrongN+')</button>';
+  h+='<button class="btn gray" onclick="bioPushNow()">🔄 立即同步</button>';
+  h+='</div>';
+  h+='<div class="btn-row"><button class="btn gray" onclick="bioLogout()">🔁 换学生</button></div>';
+  h+='</div>';
+  h+='<div class="card"><h3>🎯 每日目标</h3>';
+  h+='<p class="small">每天想背多少个新词？（1-30）</p>';
+  h+='<div style="display:flex;align-items:center;gap:10px;margin-top:10px">';
+  h+='<input type="number" id="bmGoalInp" min="1" max="30" value="'+goal+'">';
+  h+='<button class="btn gray" onclick="bmSetGoal()">保存</button>';
+  h+='<span class="small" id="goalMsg"></span>';
+  h+='</div></div>';
+  h+='<div class="card"><h3>📚 单词库</h3>';
+  h+='<p class="small">共 '+WORDS.length+' 个学术词 + '+SENTS.length+' 条翻译答题句，按 9700 单元分组：</p>';
+  h+='<div style="margin-top:8px">';
+  for(var i=0;i<GRP.length;i++){
+    var n=WORDS.filter(function(w){return grpName(w)===GRP[i][1];}).length;
+    h+='<span class="pill good" style="margin:3px 4px 3px 0;font-size:0.74rem">'+GRP[i][2]+' '+GRP[i][1]+' ('+n+')</span>';
+  }
+  h+='</div></div>';
+  pc.innerHTML=h;
+}
+
+/* ======= 学习（闪卡，按单元先后顺序） ======= */
+var bmStudy=null;
+function bmStudySetup(){
+  var p=newDay();
+  var h="";
+  h+='<div class="card"><h3>📖 开始学习</h3>';
+  h+='<p class="small">单词按单元先后顺序学习：先学完 Ch1 再学 Ch2…，不会打乱。</p>';
+  h+='<p class="small" style="margin-top:10px">学习范围：</p><select id="bmSUnit" style="margin-top:6px">';
+  h+='<option value="all">全部单元（按先后顺序）</option>';
+  for(var i=0;i<GRP.length;i++){
+    var nNew=0;
+    for(var j=0;j<WORDS.length;j++){if(grpName(WORDS[j])===GRP[i][1]&&p.learnedIds.indexOf(WORDS[j].id)<0)nNew++;}
+    h+='<option value="'+i+'">'+GRP[i][2]+' '+GRP[i][1]+'（还剩 '+nNew+' 个新词）</option>';
+  }
+  h+='</select>';
+  h+='<div class="btn-row"><button class="btn" onclick="bmStudyGo()">🚀 开始学习</button><button class="btn gray" onclick="renderHome()">返回</button></div>';
+  h+='</div>';
+  document.getElementById("pc").innerHTML=h;
+}
+function bmStudyGo(){
+  var p=newDay();var goal=Math.max(1,Math.min(30,parseInt(p.goal)||10));
+  var sel=document.getElementById("bmSUnit");
+  var unit=(sel&&sel.value!=="")?sel.value:"all";
+  var ch=null;
+  if(unit!=="all")ch=GRP[parseInt(unit)][1];
+  /* 新词按单元顺序（WORDS 本身就是按单元排的），不打乱 */
+  var newW=[];
+  for(var i=0;i<WORDS.length;i++){var w=WORDS[i];if(ch&&grpName(w)!==ch)continue;if(p.learnedIds.indexOf(w.id)<0)newW.push(w);}
+  var take=newW.slice(0,goal);
+  /* 复习错词（限同一单元/全部），按单元顺序排在最后 */
+  var review=[];
+  for(var k=0;k<p.wrong.length;k++){var rw=wById(p.wrong[k].id);if(rw&&(!ch||grpName(rw)===ch))review.push(rw);}
+  var ids={};for(var m=0;m<take.length;m++)ids[take[m].id]=1;
+  review=review.filter(function(w){return !ids[w.id];});
+  review.sort(function(a,b){return WORDS.indexOf(a)-WORDS.indexOf(b);});
+  var deck=take.concat(review);
+  if(!deck.length){
+    var msg=(ch?("「"+GRP[parseInt(unit)][2]+" "+ch+"」"):"今天")+"的词都背完啦！";
+    document.getElementById("pc").innerHTML='<div class="card empty"><div class="big">🎉 '+msg+'</div><span class="small">明天再来，或去 Quiz 检测 / 错词本复习。</span><div class="btn-row"><button class="btn" onclick="renderHome()">返回首页</button></div></div>';
+    return;
+  }
+  bmStudy={deck:deck,i:0,known:0,unknown:0,flipped:false};
+  bmCard();
+}
+function bmCard(){
+  var s=bmStudy;if(!s)return;
+  var w=s.deck[s.i];
+  var pc=document.getElementById("pc");
+  var h="";
+  h+='<div class="card"><h3>📖 学习闪卡</h3>';
+  h+='<div class="flash">';
+  h+='<span class="meta">'+esc(w.ch)+'</span>';
+  h+='<span class="prog">'+(s.i+1)+'/'+s.deck.length+'</span>';
+  h+='<div class="term">'+esc(w.t)+'</div>';
+  if(s.flipped){
+    h+='<div class="reveal"><div class="cn">'+esc(w.cn)+'</div>';
+    h+='<div class="def">📘 '+esc(w.ed)+'</div>';
+    h+='<div class="def">📖 <b>'+esc(w.cd)+'</b></div></div>';
+    h+='<div class="btn-row" style="margin-top:18px">';
+    h+='<button class="btn green" onclick="bmGrade(true)">✅ 认识</button>';
+    h+='<button class="btn red" onclick="bmGrade(false)">❌ 不认识</button>';
+    h+='</div>';
+  }else{
+    h+='<div class="small" style="margin:6px 0">回忆一下它的中文意思，然后点翻转查看</div>';
+    h+='<div class="btn-row" style="margin-top:18px">';
+    h+='<button class="btn" onclick="bmFlip()">🔄 翻转查看</button>';
+    h+='</div>';
+  }
+  h+='</div></div>';
+  h+='<div class="btn-row"><button class="btn gray" onclick="renderHome()">↩️ 退出学习</button></div>';
+  pc.innerHTML=h;
+}
+function bmFlip(){if(bmStudy)bmStudy.flipped=true;bmCard();}
+function bmGrade(know){
+  var s=bmStudy;if(!s)return;
+  var w=s.deck[s.i];
+  var p=newDay();
+  if(know){
+    if(p.todayIds.indexOf(w.id)<0)p.todayIds.push(w.id);
+    if(p.learnedIds.indexOf(w.id)<0)p.learnedIds.push(w.id);
+    decWrong(p,w.id);
+    s.known++;
+  }else{
+    addWrong(p,w.id);
+    s.unknown++;
+  }
+  sP(p);
+  s.i++;s.flipped=false;
+  if(s.i>=s.deck.length){
+    var pc=document.getElementById("pc");
+    pc.innerHTML='<div class="card"><h3>📖 学习完成</h3><div class="summary">本组 '+s.deck.length+' 张 · 认识 '+s.known+' · 新记错词 '+s.unknown+'</div>';
+    pc.innerHTML+='<div class="btn-row"><button class="btn" onclick="renderHome()">返回首页</button><button class="btn orange" onclick="bmQuizSetup()">马上 Quiz 检测</button></div></div>';
+    bioPushNow();
+    return;
+  }
+  bmCard();
+}
+
+/* ======= Quiz ======= */
+var bmQuiz=null;
+function bmQuizSetup(){
+  var p=newDay();
+  var h="";
+  h+='<div class="card"><h3>📝 Quiz 检测</h3>';
+  h+='<p class="small">选择检测范围：</p><select id="bmQScope" style="margin-top:8px">';
+  h+='<option value="today">本次学习词（今日已背 '+p.todayIds.length+'）</option>';
+  h+='<option value="learned">全部已学词（'+p.learnedIds.length+'）</option>';
+  h+='<option value="wrong">错词本（'+p.wrong.length+'）</option>';
+  h+='<option value="all">全部词库（'+WORDS.length+'）</option>';
+  h+='</select>';
+  h+='<p class="small" style="margin-top:12px">题目数：</p><select id="bmQNum" style="margin-top:8px">';
+  h+='<option value="10">10 题</option><option value="20">20 题</option><option value="0">全部</option>';
+  h+='</select>';
+  h+='<p class="small" style="margin-top:12px">题型：</p><select id="bmQType" style="margin-top:8px">';
+  h+='<option value="mix">混合（单词 + 翻译句）</option><option value="word">仅单词</option><option value="sent">仅翻译句</option>';
+  h+='</select>';
+  h+='<p class="small" style="margin-top:12px">单词题方向随机；翻译句题给出英文答题句，请选出正确的中文翻译</p>';
+  h+='<div class="btn-row"><button class="btn" onclick="bmQuizGo()">🚀 开始测验</button><button class="btn gray" onclick="renderHome()">返回</button></div>';
+  h+='</div>';
+  document.getElementById("pc").innerHTML=h;
+}
+function bmQuizGo(){
+  var p=newDay();
+  var scEl=document.getElementById("bmQScope");var scope=scEl?scEl.value:"wrong";
+  var qEl=document.getElementById("bmQNum");var qn=qEl?(parseInt(qEl.value)||10):0;
+  var tyEl=document.getElementById("bmQType");var qtype=tyEl?tyEl.value:"mix";
+  var pool=[];
+  if(qtype!=="sent"){
+    var wordIds=[];
+    if(scope==="today")wordIds=p.todayIds.slice();
+    else if(scope==="learned")wordIds=p.learnedIds.slice();
+    else if(scope==="wrong")wordIds=p.wrong.map(function(e){return e.id;});
+    else wordIds=WORDS.map(function(w){return w.id;});
+    for(var a=0;a<wordIds.length;a++){var w=wById(wordIds[a]);if(w)pool.push({t:"w",id:w.id});}
+  }
+  if(qtype!=="word"){
+    var sentIds=[];
+    if(scope==="today"||scope==="learned"||scope==="all")sentIds=SENTS.map(function(s){return s.id;});
+    else if(scope==="wrong")sentIds=p.wrongSent.map(function(e){return e.id;});
+    for(var b=0;b<sentIds.length;b++){var s=sById(sentIds[b]);if(s)pool.push({t:"s",id:s.id});}
+  }
+  shuffle(pool);
+  if(qn>0&&pool.length>qn)pool=pool.slice(0,qn);
+  if(!pool.length){document.getElementById("pc").innerHTML='<div class="card empty"><div class="big">📭 这个范围还没有内容</div><div class="btn-row"><button class="btn" onclick="renderHome()">返回首页</button></div></div>';return;}
+  bmQuiz={pool:pool,i:0,total:pool.length,correct:0};
+  bmQuizQ();
+}
+
+function bmQuizQ(){
+  var q=bmQuiz;if(!q)return;
+  var it=q.pool[q.i];
+  var pc=document.getElementById("pc");
+  var h="";
+  h+='<div class="card"><h3>📝 Quiz 检测</h3>';
+  h+='<span class="small">第 '+(q.i+1)+'/'+q.total+' 题 · 当前答对 '+q.correct+'</span>';
+  h+=(it.t==="s")?bmQuizSent(it):bmQuizWord(it);
+  pc.innerHTML=h;
+}
+function bmQuizWord(it){
+  var w=wById(it.id);if(!w)return "";
+  var dir=Math.random()<0.5?"toCN":"toEN";
+  var correct=dir==="toCN"?w.cn:w.t;
+  var opts=[correct];
+  var others=WORDS.filter(function(x){return x.id!==w.id && (dir==="toCN"?x.cn!==correct:x.t!==correct);});
+  shuffle(others);
+  for(var i=0;i<others.length&&opts.length<4;i++){var o=dir==="toCN"?others[i].cn:others[i].t;if(opts.indexOf(o)<0)opts.push(o);}
+  shuffle(opts);
+  var h="";
+  h+='<div class="flash"><span class="meta">'+esc(w.ch)+'</span>';
+  h+='<div class="term">'+(dir==="toCN"?esc(w.t):esc(w.cn))+'</div>';
+  h+='<div class="small">'+(dir==="toCN"?"请选出它的中文意思":"请选出对应的英文词")+'</div>';
+  h+='<div style="width:100%;margin-top:14px">';
+  for(var k=0;k<opts.length;k++){
+    h+='<button class="opt" data-ok="'+(opts[k]===correct?"1":"0")+'" data-id="'+esc(w.id)+'" data-ty="w" onclick="bmQuizAnswer(this,'+(opts[k]===correct)+')">'+esc(opts[k])+'</button>';
+  }
+  h+='</div></div>';
+  return h;
+}
+function bmQuizSent(it){
+  var s=sById(it.id);if(!s)return "";
+  var correct=s.cn;
+  var opts=[correct];
+  var others=SENTS.filter(function(x){return x.id!==s.id&&x.cn!==correct;});
+  shuffle(others);
+  for(var i=0;i<others.length&&opts.length<4;i++){if(opts.indexOf(others[i].cn)<0)opts.push(others[i].cn);}
+  shuffle(opts);
+  var h="";
+  h+='<div class="flash"><span class="meta">'+esc(s.ch)+' · 翻译句</span>';
+  h+='<div class="term" style="font-size:1.1rem;line-height:1.65">'+esc(s.en)+'</div>';
+  h+='<div class="small">请选出这句话的中文翻译</div>';
+  h+='<div style="width:100%;margin-top:14px">';
+  for(var k=0;k<opts.length;k++){
+    h+='<button class="opt" data-ok="'+(opts[k]===correct?"1":"0")+'" data-id="'+esc(s.id)+'" data-ty="s" onclick="bmQuizAnswer(this,'+(opts[k]===correct)+')">'+esc(opts[k])+'</button>';
+  }
+  h+='</div></div>';
+  return h;
+}
+
+function bmQuizAnswer(el,isOk){
+  var q=bmQuiz;if(!q)return;
+  var pc=document.getElementById("pc");
+  var p=newDay();
+  var id=el.getAttribute("data-id")||"";
+  var t=el.getAttribute("data-ty")||"w";
+  if(isOk){q.correct++;if(t==="s")decWrongSent(p,id);else decWrong(p,id);}
+  else{if(t==="s")addWrongSent(p,id);else addWrong(p,id);}
+  p.quizTotal++;p.quizToday++;
+  if(isOk){p.quizTotalC++;p.quizTodayC++;}
+  sP(p);
+  var opts=pc.querySelectorAll(".opt");
+  for(var i=0;i<opts.length;i++){opts[i].disabled=true;if(opts[i].getAttribute("data-ok")==="1")opts[i].className="opt ok";else if(opts[i]!==el)opts[i].className="opt";}
+  if(!isOk)el.className="opt no";
+  var fb=pc.querySelector(".flash");
+  if(fb){fb.insertAdjacentHTML("beforeend",'<div style="margin-top:14px;font-weight:700;color:'+(isOk?'var(--correct)':'var(--wrong)')+'">'+(isOk?"✅ 答对！":"❌ 答错，已记入"+(t==="s"?"句错题":"错词本"))+'</div>');}
+  setTimeout(function(){
+    q.i++;
+    if(q.i>=q.total){
+      var acc=q.total?Math.round(q.correct/q.total*100):0;
+      pc.innerHTML='<div class="card"><h3>📝 Quiz 完成</h3><div class="summary">答对 '+q.correct+'/'+q.total+' · 正确率 '+acc+'%</div>';
+      pc.innerHTML+='<div class="btn-row"><button class="btn" onclick="renderHome()">返回首页</button><button class="btn orange" onclick="bmQuizSetup()">再测一次</button></div></div>';
+      bioPushNow();
+    }else{bmQuizQ();}
+  },isOk?450:900);
+}
+
+function bmWrongBook(){
+  var p=newDay();
+  var pc=document.getElementById("pc");
+  var wrongN=p.wrong.length;var sentN=p.wrongSent?p.wrongSent.length:0;
+  if(!wrongN&&!sentN){pc.innerHTML='<div class="card empty"><div class="big">🎉 错词本是空的</div><span class="small">继续保持！</span><div class="btn-row"><button class="btn" onclick="renderHome()">返回首页</button></div></div>';return;}
+  var h="";
+  h+='<div class="card"><h3>❌ 错词本（'+wrongN+' 词 · '+sentN+' 句）</h3>';
+  h+='<p class="small">做错的单词和翻译句会记在这里，Quiz 答对会减次数，减到 0 自动移出。</p>';
+  if(wrongN){
+    h+='<h3 style="margin:12px 0 4px;font-size:0.88rem;color:var(--accent2)">📄 单词错词</h3>';
+    for(var i=0;i<p.wrong.length;i++){
+      var w=wById(p.wrong[i].id);if(!w)continue;
+      h+='<div class="wrong-row"><span class="w">'+esc(w.t)+'</span><span class="small" style="color:var(--correct);font-weight:600">'+esc(w.cn)+'</span><span class="n">错 '+p.wrong[i].n+'</span></div>';
+    }
+  }
+  if(sentN){
+    h+='<h3 style="margin:16px 0 4px;font-size:0.88rem;color:var(--accent2)">✍️ 翻译句错题</h3>';
+    for(var j=0;j<p.wrongSent.length;j++){
+      var s=sById(p.wrongSent[j].id);if(!s)continue;
+      h+='<div class="wrong-row"><span class="w" style="font-size:0.78rem;min-width:180px">'+esc(s.en)+'</span><span class="small" style="color:var(--correct);font-weight:600">'+esc(s.cn)+'</span><span class="n">错 '+p.wrongSent[j].n+'</span></div>';
+    }
+  }
+  h+='<div class="btn-row"><button class="btn orange" onclick="bmQuizGo()">✏️ 再测这些错题</button>';
+  h+='<button class="btn green" onclick="bmStudyWrong()">📖 重学单词闪卡</button>';
+  h+='<button class="btn gray" onclick="renderHome()">返回</button></div>';
+  h+='</div>';
+  pc.innerHTML=h;
+}
+
+function bmStudyWrong(){
+  var p=newDay();
+  var deck=p.wrong.map(function(e){return wById(e.id);}).filter(Boolean);
+  shuffle(deck);
+  if(!deck.length){renderHome();return;}
+  bmStudy={deck:deck,i:0,known:0,unknown:0,flipped:false};
+  bmCard();
+}
+
+/* ======= 目标 ======= */
+function bmSetGoal(){
+  var v=parseInt(document.getElementById("bmGoalInp").value)||10;
+  v=Math.max(1,Math.min(30,v));
+  var p=newDay();p.goal=v;sP(p);
+  var msg=document.getElementById("goalMsg");
+  if(msg){msg.textContent="✅ 已保存：每天 "+v+" 个";}
+  renderHome();
+}
+
+/* ======= 云同步（bioHex token + Contents API，与题库 app 同款） ======= */
+function bioSetSync(mode,label){
+  var el=document.getElementById("bioSyncB");if(!el)return;
+  el.className="bio-sync"+(mode==="off"?" off":"");
+  el.textContent="☁️ "+label;
+}
+function gPending(){try{return localStorage.getItem(K_PENDING)==="1";}catch(e){return false;}}
+function bioQueuePending(){try{localStorage.setItem(K_PENDING,"1");}catch(e){}}
+function bioClearPending(){try{localStorage.removeItem(K_PENDING);}catch(e){}}
+function bioPushNow(){
+  if(bioSyncBusy)return;
+  if(!BIO_STUDENT)return;
+  if(BIO_CFG.token==="__BIO_TOKEN__"){bioSetSync("off","未设置");return;}
+  bioSyncBusy=true;
+  var p=newDay();
+  var slug=encodeURIComponent(BIO_STUDENT);
+  var path=BIO_CFG.folder+"/"+slug+".json";
+  var url="https://api.github.com/repos/"+BIO_CFG.owner+"/"+BIO_CFG.repo+"/contents/"+path;
+  var body={name:BIO_STUDENT,updated:new Date().toISOString(),goal:p.goal,
+    learnedToday:p.todayIds.length,quizToday:p.quizToday,quizCorrectToday:p.quizTodayC,
+    totalLearned:p.learnedIds.length,totalQuiz:p.quizTotal,totalQuizCorrect:p.quizTotalC,
+    wrong:p.wrong,wrongSent:p.wrongSent,history:p.history};
+  var payload={message:"sync "+BIO_STUDENT,content:btoa(unescape(encodeURIComponent(JSON.stringify(body))))};
+  fetch(url,{headers:{Authorization:"Bearer "+BIO_CFG.token,"Accept":"application/vnd.github+json"}})
+    .then(function(r){return r.json().then(function(j){return{status:r.status,j:j};});})
+    .then(function(res){
+      if(res.status===200&&res.j.sha)payload.sha=res.j.sha;
+      return fetch(url,{method:"PUT",headers:{Authorization:"Bearer "+BIO_CFG.token,"Accept":"application/vnd.github+json"},body:JSON.stringify(payload)});
+    })
+    .then(function(r){
+      bioSyncBusy=false;
+      if(r.ok){bioSetSync("on","已同步");bioClearPending();}
+      else{bioSetSync("off","同步失败");bioQueuePending();}
+    })
+    .catch(function(){bioSyncBusy=false;bioSetSync("off","未连接");bioQueuePending();});
+}
+
+/* ======= 启动 ======= */
+renderHome();
+bioAskName();
+bioPushNow();/* 打开页面自动补推未同步记录 */
+setTimeout(function(){if(gPending())bioPushNow();},4000);/* 首次失败 4 秒后重试 */
+setTimeout(function(){if(gPending())bioPushNow();},12000);/* 再失败 12 秒后再试 */
+</script>
+</body>
+</html>
