@@ -579,7 +579,7 @@ function loadAll(){
     gh(CFG.folder+"/"+encodeURIComponent(name)+".json").then(function(res){
       if(res.ok){
         try{
-          var s=JSON.parse(b64utf8(res.j.content));
+          var s=fixRec(JSON.parse(b64utf8(res.j.content)));
           if(s&&s.name)list.push(s);
           else list.push({name:name,wrong:[],history:[],updated:null,note:"文件格式异常"});
           okAny=true;
@@ -612,8 +612,49 @@ function loadAll(){
 }
 
 /* ======= 汇总展示 ======= */
-function qrate(s){return (s.totalQuiz||0)?Math.round((s.totalQuizCorrect||0)/(s.totalQuiz||0)*100):null;}
-function todayAcc(s){return (s.quizToday||0)?Math.round((s.quizTodayCorrect||0)/(s.quizToday||0)*100):null;}
+function fixRec(s){
+  if(!(s.wrong instanceof Array))s.wrong=[];
+  if(!(s.wrongSent instanceof Array))s.wrongSent=[];
+  if(!(s.history instanceof Array))s.history=[];
+  if(!(s.sessions instanceof Array))s.sessions=[];
+  var t=s.totalQuiz||0;
+  if((s.totalQuizCorrect||0)>t)s.totalQuizCorrect=t;
+  /* v1 学生端推的是 quizCorrectToday，这里统一成 quizTodayCorrect */
+  var td=s.quizToday||0;
+  var tc=(s.quizCorrectToday!==undefined&&s.quizTodayCorrect===undefined)?s.quizCorrectToday:(s.quizTodayCorrect||0);
+  s.quizTodayCorrect=Math.min(tc,td);
+  s.totalLearned=Math.max(s.totalLearned||0,s.legacyPeak||0);
+  return s;
+}
+/* 某天的秒数：history 已落账就用 sc，否则按当天 sessions 累加，两者不重复计 */
+function daySec(s,d){
+  var sc=0,found=false;
+  (s.history||[]).forEach(function(e){if(e&&e.d===d){found=true;sc=e.sc||0;}});
+  if(found&&sc>0)return sc;
+  var t=0;(s.sessions||[]).forEach(function(e){if(e&&e.d===d)t+=e.sec||0;});
+  return t;
+}
+function durToday(s){return daySec(s,s.day||"");}
+function durTotal(s){
+  var m={};(s.sessions||[]).forEach(function(e){if(e&&e.d)m[e.d]=(m[e.d]||0)+(e.sec||0);});
+  var t=0,seen={};
+  (s.history||[]).forEach(function(e){
+    if(!e||!e.d)return;
+    seen[e.d]=1;
+    t+=((e.sc||0)>0?(e.sc||0):(m[e.d]||0));
+  });
+  for(var d in m){if(!seen[d])t+=m[d];}
+  return t;
+}
+function fmtDur(x){
+  x=Math.round(x||0);
+  if(x<=0)return "—";
+  if(x<60)return x+"秒";
+  var m=Math.floor(x/60),hh=Math.floor(m/60);m=m%60;
+  return hh?(hh+"小时"+(m?m+"分":"")):(m+"分");
+}
+function qrate(s){var t=s.totalQuiz||0;return t?Math.round(Math.min(s.totalQuizCorrect||0,t)/t*100):null;}
+function todayAcc(s){var t=s.quizToday||0;return t?Math.round(Math.min(s.quizTodayCorrect||0,t)/t*100):null;}
 function renderStudents(){
   var el=document.getElementById("studentList");
   var h="";
@@ -633,11 +674,13 @@ function renderStudents(){
       h+='<div class="kpi">';
       h+='<div class="it"><div class="lb">今日已背</div><div class="vl" style="color:'+(lt>=goal?'var(--correct)':'var(--accent)')+'">'+lt+'/'+goal+'</div></div>';
       h+='<div class="it"><div class="lb">累计已背</div><div class="vl">'+(s.totalLearned||0)+'</div></div>';
+      h+='<div class="it"><div class="lb">今日时长</div><div class="vl">'+esc(fmtDur(durToday(s)))+'</div></div>';
+      h+='<div class="it"><div class="lb">累计时长</div><div class="vl">'+esc(fmtDur(durTotal(s)))+'</div></div>';
       h+='<div class="it"><div class="lb">今日Quiz正确率</div><div class="vl" style="color:'+(qc==null?'var(--muted)':qc>=60?'var(--correct)':'var(--wrong)')+'">'+(qc==null?'—':qc+'%')+'</div></div>';
       h+='<div class="it"><div class="lb">累计Quiz正确率</div><div class="vl" style="color:'+(qr==null?'var(--muted)':qr>=60?'var(--correct)':'var(--wrong)')+'">'+(qr==null?'—':qr+'%')+'</div></div>';
       h+='</div>';
     }
-    h+='<button class="expand-btn" onclick="toggle(this)">▸ 查看错词明细与每日进度</button>';
+    h+='<button class="expand-btn" onclick="toggle(this)">▸ 展开明细（错词 · 每日进度 · 每次背诵）</button>';
     h+='<div class="detail" style="display:none;margin-top:12px">';
     if(wrong.length){
       h+='<div style="font-weight:700;color:var(--accent2);font-size:0.85rem;margin:6px 0 8px">❌ 错词本（'+wrong.length+' 个词）</div>';
@@ -647,11 +690,23 @@ function renderStudents(){
       });
     }
     if((s.history||[]).length){
-      h+='<div style="font-weight:700;color:var(--accent2);font-size:0.85rem;margin:10px 0 6px">📅 每日进度</div><div style="overflow-x:auto"><table><thead><tr><th>日期</th><th>目标</th><th>已背</th><th>Quiz</th><th>正确率</th></tr></thead><tbody>';
-      (s.history||[]).slice().reverse().forEach(function(hh){
+      h+='<div style="font-weight:700;color:var(--accent2);font-size:0.85rem;margin:10px 0 6px">📅 每日进度</div><div style="overflow-x:auto"><table><thead><tr><th>日期</th><th>目标</th><th>已背</th><th>时长</th><th>Quiz</th><th>正确率</th></tr></thead><tbody>';
+      (s.history||[]).slice().sort(function(a,b){return (a.d||"")<(b.d||"")?-1:((a.d||"")>(b.d||"")?1:0);}).reverse().forEach(function(hh){
         var acc=(hh.q||0)?Math.round((hh.qc||0)/(hh.q||0)*100):null;
         var col=acc==null?'':acc>=60?'var(--correct)':'var(--wrong)';
-        h+='<tr><td>'+esc(hh.d)+'</td><td>'+hh.g+'</td><td>'+hh.l+'</td><td>'+(hh.q||0)+'</td><td style="color:'+col+'">'+(acc==null?'—':acc+'%')+'</td></tr>';
+        h+='<tr><td>'+esc(hh.d)+'</td><td>'+hh.g+'</td><td>'+hh.l+'</td><td>'+esc(fmtDur(daySec(s,hh.d)))+'</td><td>'+(hh.q||0)+'</td><td style="color:'+col+'">'+(acc==null?'—':acc+'%')+'</td></tr>';
+      });
+      h+='</tbody></table></div>';
+    }
+    if((s.sessions||[]).length){
+      var ss=(s.sessions||[]).slice().sort(function(a,b){return (b.t||0)-(a.t||0);}).slice(0,50);
+      h+='<div style="font-weight:700;color:var(--accent2);font-size:0.85rem;margin:10px 0 6px">⏱️ 每次背诵记录（最近 '+ss.length+' 次）</div><div style="overflow-x:auto"><table><thead><tr><th>日期</th><th>开始</th><th>时长</th><th>类型</th><th>新学</th><th>Quiz题数</th><th>正确率</th></tr></thead><tbody>';
+      ss.forEach(function(e){
+        var dt=new Date(e.t||0);
+        var hm=("0"+dt.getHours()).slice(-2)+":"+("0"+dt.getMinutes()).slice(-2);
+        var isQ=(e.k==="quiz");
+        var acc=(isQ&&(e.q||0))?(Math.round((e.qc||0)/(e.q||0)*100)+"%"):"—";
+        h+='<tr><td>'+esc(e.d||"")+'</td><td>'+hm+'</td><td>'+esc(fmtDur(e.sec))+'</td><td>'+(isQ?"Quiz":"学习")+'</td><td>'+(isQ?"—":(e.l||0))+'</td><td>'+(isQ?(e.q||0):"—")+'</td><td>'+acc+'</td></tr>';
       });
       h+='</tbody></table></div>';
     }
@@ -668,12 +723,12 @@ function toggle(btn){
   var d=btn.nextElementSibling;
   var open=d.style.display!=="none";
   d.style.display=open?"none":"block";
-  btn.textContent=open?"▸ 查看错词明细与每日进度":"▾ 收起";
+  btn.textContent=open?"▸ 展开明细（错词 · 每日进度 · 每次背诵）":"▾ 收起";
 }
 function exportCSV(){
-  var rows=[["学生","更新","今日已背","目标","累计已背","今日Quiz","今日正确","累计Quiz","累计正确"]];
+  var rows=[["学生","更新","今日已背","目标","累计已背","今日时长","累计时长","今日Quiz","今日正确","累计Quiz","累计正确"]];
   students.forEach(function(s){
-    rows.push([s.name,s.updated,s.learnedToday||0,s.goal||10,s.totalLearned||0,s.quizToday||0,s.quizTodayCorrect||0,s.totalQuiz||0,s.totalQuizCorrect||0]);
+    rows.push([s.name,s.updated,s.learnedToday||0,s.goal||10,s.totalLearned||0,fmtDur(durToday(s)),fmtDur(durTotal(s)),s.quizToday||0,s.quizTodayCorrect||0,s.totalQuiz||0,s.totalQuizCorrect||0]);
   });
   var csv=rows.map(function(r){return r.map(function(c){return '"'+String(c==null?"":c).replace(/"/g,'""')+'"';}).join(",");}).join("\r\n");
   var blob=new Blob(["﻿"+csv],{type:"text/csv;charset=utf-8"});
