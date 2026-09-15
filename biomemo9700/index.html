@@ -493,10 +493,64 @@ var SENTS=[
 /* ======= 本地状态（localStorage） ======= */
 var K_NAME="BM9700Name",K_GOAL="BM9700Goal",K_P="BM9700Progress",K_PENDING="BM9700Pending";
 function tStr(){var d=new Date();return d.getFullYear()+"-"+("0"+(d.getMonth()+1)).slice(-2)+"-"+("0"+d.getDate()).slice(-2);}
-function defP(){return {name:"",updated:"",goal:10,day:"",todayIds:[],learnedIds:[],quizToday:0,quizTodayC:0,quizTotal:0,quizTotalC:0,wrong:[],wrongSent:[],history:[]};}
-function gP(){try{var p=JSON.parse(localStorage.getItem(K_P));if(p&&typeof p==="object")return p;}catch(e){}return defP();}
-function sP(p){try{localStorage.setItem(K_P,JSON.stringify(p));}catch(e){}}
-function newDay(){var p=gP();var t=tStr();if(p.day!==t){if(p.day)p.history.push({d:p.day,g:p.goal,l:p.todayIds.length,q:p.quizToday,qc:p.quizTodayC});if(p.history.length>60)p.history.shift();p.day=t;p.todayIds=[];p.quizToday=0;p.quizTodayC=0;sP(p);}return p;}
+function defP(){return {v:2,name:"",updated:"",goal:10,goalSet:false,day:"",todayIds:[],learnedIds:[],quizToday:0,quizTodayC:0,quizTotal:0,quizTotalC:0,wrong:[],wrongSent:[],history:[],sessions:[],legacyPeak:0};}
+function pKey(n){return K_P+":"+n;}
+function fixP(p){
+  var d=defP();
+  for(var k in d){if(!(k in p))p[k]=d[k];}
+  if(!(p.learnedIds instanceof Array))p.learnedIds=[];
+  if(!(p.todayIds instanceof Array))p.todayIds=[];
+  if(!(p.wrong instanceof Array))p.wrong=[];
+  if(!(p.history instanceof Array))p.history=[];
+  if(!(p.sessions instanceof Array))p.sessions=[];
+  if(BIO_HAS_SENT&&!(p.wrongSent instanceof Array))p.wrongSent=[];
+  p.history=p.history.filter(function(e){return e&&e.d;});
+  p.sessions=p.sessions.filter(function(e){return e&&typeof e.t==="number"&&e.d;});
+  if((p.quizTotalC||0)>(p.quizTotal||0))p.quizTotalC=p.quizTotal||0;
+  if((p.quizTodayC||0)>(p.quizToday||0))p.quizTodayC=p.quizToday||0;
+  return p;
+}
+/* 进度按学生分键存：共用一台设备时，B 同学不会继承 A 同学的数据 */
+function gP(){
+  if(!BIO_STUDENT)return defP();
+  try{
+    var p=JSON.parse(localStorage.getItem(pKey(BIO_STUDENT)));
+    if(p&&typeof p==="object")return fixP(p);
+  }catch(e){}
+  return defP();
+}
+function sP(p){
+  if(!BIO_STUDENT)return;
+  try{localStorage.setItem(pKey(BIO_STUDENT),JSON.stringify(p));BIO_STORE_OK=true;}
+  catch(e){BIO_STORE_OK=false;}
+}
+/* 把 v1 的单键记录迁到它真正的主人的键下 */
+function bioMigrate(name){
+  try{
+    var raw=localStorage.getItem(K_P);
+    if(!raw)return;
+    localStorage.removeItem(K_P);
+    var old=null;try{old=JSON.parse(raw);}catch(e){}
+    if(!old||typeof old!=="object")return;
+    var owner=(old.name&&String(old.name))||name;
+    var dst=pKey(owner);
+    if(!localStorage.getItem(dst))localStorage.setItem(dst,JSON.stringify(old));
+  }catch(e){}
+}
+function newDay(){
+  var p=gP();var t=tStr();
+  if(p.day!==t){
+    if(p.day){
+      var sc=0;(p.sessions||[]).forEach(function(e){if(e&&e.d===p.day)sc+=e.sec||0;});
+      p.history.push({d:p.day,g:p.goal,l:(p.todayIds||[]).length,q:p.quizToday||0,qc:p.quizTodayC||0,sc:Math.round(sc)});
+    }
+    p.history=mergeHistory(p.history,[]);
+    if(p.history.length>200)p.history=p.history.slice(p.history.length-200);
+    p.sessions=(p.sessions||[]).filter(function(e){return e&&e.d>=t;});
+    p.day=t;p.todayIds=[];p.quizToday=0;p.quizTodayC=0;sP(p);
+  }
+  return p;
+}
 function gW(p){return p.wrong;}
 function addWrong(p,id){for(var i=0;i<p.wrong.length;i++){if(p.wrong[i].id===id){p.wrong[i].n++;return;}}p.wrong.push({id:id,n:1});}
 function decWrong(p,id){for(var i=0;i<p.wrong.length;i++){if(p.wrong[i].id===id){p.wrong[i].n--;if(p.wrong[i].n<=0)p.wrong.splice(i,1);return;}}}
@@ -509,7 +563,7 @@ function esc(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"
 function grpName(w){return String(w.ch||"").replace(/^Ch\d+\s*/,"");} /* "Ch1 Cells" -> "Cells" */
 
 /* ======= 登录门 ======= */
-function bioLoadName(){BIO_STUDENT=localStorage.getItem(K_NAME)||"";}
+function bioLoadName(){try{BIO_STUDENT=localStorage.getItem(K_NAME)||"";}catch(e){BIO_STUDENT="";}}
 function bioAskName(){
   bioLoadName();
   if(BIO_STUDENT){
@@ -542,33 +596,40 @@ function bioSetName(){
   BIO_STUDENT=canon;
   try{localStorage.setItem(K_NAME,canon);}catch(e){}
   var g=document.getElementById("bioNameGate");if(g)g.style.display="none";
+  bioMigrate(canon);
   var p=gP();p.name=canon;sP(p);
   renderHome();
-  bioPushNow();
+  bioSync();
 }
-function bioLogout(){BIO_STUDENT="";try{localStorage.removeItem(K_NAME);}catch(e){}renderHome();bioAskName();}
+function bioLogout(){sessFlush();BIO_STUDENT="";try{localStorage.removeItem(K_NAME);}catch(e){}renderHome();bioAskName();}
 
 /* ======= 首页 ======= */
 function renderHome(){
+  sessFlush();/* 回到首页＝本次背诵结束，把时长落账 */
   var pc=document.getElementById("pc");
+  if(!BIO_STUDENT){if(pc)pc.innerHTML="";return;}
   var p=newDay();
   var goal=Math.max(1,Math.min(30,parseInt(p.goal)||10));
   var accToday=p.quizToday?(Math.round(p.quizTodayC/p.quizToday*100))+"%":"—";
   var wrongN=p.wrong.length;var sentN=p.wrongSent?p.wrongSent.length:0;
   var h="";
   h+='<div class="card"><h3>👋 你好，'+esc(BIO_STUDENT)+'</h3>';
+  if(BIO_STORE_OK===false)h+='<div class="small" style="color:var(--wrong);font-weight:700;margin:6px 0">⚠️ 本机浏览器无法保存进度（可能处于无痕／隐私模式）。每次背完请点「🔄 立即同步」；换回正常窗口后进度会从云端自动恢复。</div>';
+  if((p.legacyPeak||0)>(p.learnedIds||[]).length)h+='<div class="small" style="color:var(--muted);margin:6px 0">ℹ️ 旧版记录只存了累计数量、没存具体是哪些词，所以「累计已背」保留历史最高值 '+p.legacyPeak+'；词表会从头再走一遍，新学的词照常累加。</div>';
   h+='<div class="kpi">';
   h+='<div class="it"><div class="lb">今日已背</div><div class="vl" style="color:var(--accent)">'+p.todayIds.length+'/'+goal+'</div></div>';
-  h+='<div class="it"><div class="lb">累计已背</div><div class="vl">'+p.learnedIds.length+'</div></div>';
+  h+='<div class="it"><div class="lb">累计已背</div><div class="vl">'+Math.max(p.legacyPeak||0,p.learnedIds.length)+'</div></div>';
   h+='<div class="it"><div class="lb">今日Quiz</div><div class="vl" style="color:'+(p.quizTodayC>0&&p.quizTodayC/p.quizToday<0.6?'var(--wrong)':'var(--correct)')+'">'+accToday+'</div></div>';
   h+='<div class="it"><div class="lb">错词本</div><div class="vl" style="color:'+(wrongN?'var(--wrong)':'var(--correct)')+'">'+wrongN+'</div></div>';
+  h+='<div class="it"><div class="lb">今日时长</div><div class="vl">'+esc(fmtDur(durToday(p)))+'</div></div>';
+  h+='<div class="it"><div class="lb">累计时长</div><div class="vl">'+esc(fmtDur(durTotal(p)))+'</div></div>';
   h+='<div class="it"><div class="lb">句错题</div><div class="vl" style="color:'+(sentN?'var(--wrong)':'var(--correct)')+'">'+sentN+'</div></div>';
   h+='</div>';
   h+='<div class="btn-row">';
   h+='<button class="btn" onclick="bmStudySetup()">📖 开始学习</button>';
   h+='<button class="btn orange" onclick="bmQuizSetup()">📝 Quiz 检测</button>';
   h+='<button class="btn red" onclick="bmWrongBook()">❌ 错词本 ('+wrongN+')</button>';
-  h+='<button class="btn gray" onclick="bioPushNow()">🔄 立即同步</button>';
+  h+='<button class="btn gray" onclick="bioSync()">🔄 立即同步</button>';
   h+='</div>';
   h+='<div class="btn-row"><button class="btn gray" onclick="bioLogout()">🔁 换学生</button></div>';
   h+='</div>';
@@ -632,6 +693,7 @@ function bmStudyGo(){
     return;
   }
   bmStudy={deck:deck,i:0,known:0,unknown:0,flipped:false};
+  sessStart("study");
   bmCard();
 }
 function bmCard(){
@@ -676,13 +738,15 @@ function bmGrade(know){
     addWrong(p,w.id);
     s.unknown++;
   }
+  sessKnown(s.known);
   sP(p);
+  bioSyncSoon();
   s.i++;s.flipped=false;
   if(s.i>=s.deck.length){
     var pc=document.getElementById("pc");
     pc.innerHTML='<div class="card"><h3>📖 学习完成</h3><div class="summary">本组 '+s.deck.length+' 张 · 认识 '+s.known+' · 新记错词 '+s.unknown+'</div>';
     pc.innerHTML+='<div class="btn-row"><button class="btn" onclick="renderHome()">返回首页</button><button class="btn orange" onclick="bmQuizSetup()">马上 Quiz 检测</button></div></div>';
-    bioPushNow();
+    sessKnown(s.known);sessFlush();bioSync();
     return;
   }
   bmCard();
@@ -735,6 +799,7 @@ function bmQuizGo(){
   if(qn>0&&pool.length>qn)pool=pool.slice(0,qn);
   if(!pool.length){document.getElementById("pc").innerHTML='<div class="card empty"><div class="big">📭 这个范围还没有内容</div><div class="btn-row"><button class="btn" onclick="renderHome()">返回首页</button></div></div>';return;}
   bmQuiz={pool:pool,i:0,total:pool.length,correct:0};
+  sessStart("quiz");
   bmQuizQ();
 }
 
@@ -798,7 +863,9 @@ function bmQuizAnswer(el,isOk){
   else{if(t==="s")addWrongSent(p,id);else addWrong(p,id);}
   p.quizTotal++;p.quizToday++;
   if(isOk){p.quizTotalC++;p.quizTodayC++;}
+  sessQuiz(isOk);
   sP(p);
+  bioSyncSoon();
   var opts=pc.querySelectorAll(".opt");
   for(var i=0;i<opts.length;i++){opts[i].disabled=true;if(opts[i].getAttribute("data-ok")==="1")opts[i].className="opt ok";else if(opts[i]!==el)opts[i].className="opt";}
   if(!isOk)el.className="opt no";
@@ -810,7 +877,7 @@ function bmQuizAnswer(el,isOk){
       var acc=q.total?Math.round(q.correct/q.total*100):0;
       pc.innerHTML='<div class="card"><h3>📝 Quiz 完成</h3><div class="summary">答对 '+q.correct+'/'+q.total+' · 正确率 '+acc+'%</div>';
       pc.innerHTML+='<div class="btn-row"><button class="btn" onclick="renderHome()">返回首页</button><button class="btn orange" onclick="bmQuizSetup()">再测一次</button></div></div>';
-      bioPushNow();
+      sessFlush();bioSync();
     }else{bmQuizQ();}
   },isOk?450:900);
 }
@@ -850,6 +917,7 @@ function bmStudyWrong(){
   shuffle(deck);
   if(!deck.length){renderHome();return;}
   bmStudy={deck:deck,i:0,known:0,unknown:0,flipped:false};
+  sessStart("study");
   bmCard();
 }
 
@@ -857,13 +925,148 @@ function bmStudyWrong(){
 function bmSetGoal(){
   var v=parseInt(document.getElementById("bmGoalInp").value)||10;
   v=Math.max(1,Math.min(30,v));
-  var p=newDay();p.goal=v;sP(p);
+  var p=newDay();p.goal=v;p.goalSet=true;sP(p);
   var msg=document.getElementById("goalMsg");
   if(msg){msg.textContent="✅ 已保存：每天 "+v+" 个";}
   renderHome();
 }
 
-/* ======= 云同步（bioHex token + Contents API，与题库 app 同款） ======= */
+/* ======= 云同步 v2：先拉取 → 合并 → 回写（bioHex token + Contents API） ======= */
+/* v1 的问题是只推不拉：本机 localStorage 为空时会把云端记录覆盖成全 0。 */
+var BIO_STORE_OK=true,bioSyncBusy=false,bioDirty=false;
+var BIO_HAS_SENT=true;
+(function(){try{localStorage.setItem(K_P+"__probe","1");localStorage.removeItem(K_P+"__probe");BIO_STORE_OK=true;}catch(e){BIO_STORE_OK=false;}})();
+
+function b64enc(s){return btoa(unescape(encodeURIComponent(s)));}
+function b64dec(s){return decodeURIComponent(escape(atob(String(s).replace(/\s/g,""))));}
+function uniqArr(a){var m={},o=[];for(var i=0;i<(a||[]).length;i++){var v=a[i];if(v===undefined||v===null||v==="")continue;var k=String(v);if(!m[k]){m[k]=1;o.push(v);}}return o;}
+
+/* 错词合并：按 id 取 n 的最大值（不累加，避免两台设备重复计数） */
+function mergeWrong(a,b){
+  var m={},o=[];
+  function add(w){
+    for(var i=0;i<(w||[]).length;i++){
+      var e=w[i];
+      if(!e||e.id===undefined||e.id===null||e.id==="")continue;
+      var k=String(e.id);
+      if(!m[k]){m[k]={id:e.id,n:0};o.push(m[k]);}
+      m[k].n=Math.max(m[k].n,e.n||0);
+    }
+  }
+  add(a);add(b);
+  o.sort(function(x,y){return (y.n||0)-(x.n||0);});
+  return o;
+}
+
+/* 每日汇总合并：按日期取各字段最大值 */
+function mergeHistory(a,b){
+  var m={};
+  function add(h){
+    for(var i=0;i<(h||[]).length;i++){
+      var e=h[i];if(!e||!e.d)continue;
+      var c=m[e.d];
+      if(!c){m[e.d]={d:e.d,g:e.g||0,l:e.l||0,q:e.q||0,qc:e.qc||0,sc:e.sc||0};continue;}
+      c.g=Math.max(c.g,e.g||0);c.l=Math.max(c.l,e.l||0);
+      c.q=Math.max(c.q,e.q||0);c.qc=Math.max(c.qc,e.qc||0);c.sc=Math.max(c.sc,e.sc||0);
+    }
+  }
+  add(a);add(b);
+  var o=[];for(var k in m)if(m.hasOwnProperty(k))o.push(m[k]);
+  o.sort(function(x,y){return x.d<y.d?-1:(x.d>y.d?1:0);});
+  return o;
+}
+
+/* 每次背诵记录：按 起始时间+类型 去重后并集 */
+function mergeSessions(a,b){
+  var m={},o=[];
+  function add(s){
+    for(var i=0;i<(s||[]).length;i++){
+      var e=s[i];
+      if(!e||typeof e.t!=="number"||!e.d)continue;
+      var k=e.t+"|"+(e.k||"");
+      if(!m[k]){m[k]=1;o.push(e);}
+    }
+  }
+  add(a);add(b);
+  o.sort(function(x,y){return x.t-y.t;});
+  if(o.length>300)o=o.slice(o.length-300);
+  return o;
+}
+
+/* 把「较旧那一天」的当天数据落进 history，再做跨天合并 */
+function foldDay(out,d,src){
+  var sc=0;(src.sessions||[]).forEach(function(e){if(e&&e.d===d)sc+=e.sec||0;});
+  var cur=null;
+  (out.history||[]).forEach(function(e){if(e&&e.d===d)cur=e;});
+  var l=(src.todayIds||[]).length,q=src.quizToday||0,qc=src.quizTodayC||0;
+  if(cur){
+    cur.l=Math.max(cur.l||0,l);cur.q=Math.max(cur.q||0,q);
+    cur.qc=Math.max(cur.qc||0,qc);cur.sc=Math.max(cur.sc||0,Math.round(sc));
+  }else{
+    out.history.push({d:d,g:src.goal||0,l:l,q:q,qc:qc,sc:Math.round(sc)});
+  }
+  out.history=mergeHistory(out.history,[]);
+}
+
+/* 合并规则：只做并集 / 取大，任何路径都不会把数字合并虚高，也不会缩水 */
+function bioMerge(L,C){
+  if(!C)return L;
+  if(!L)return C;
+  var out=defP();
+  out.v=2;
+  out.name=C.name||L.name||BIO_STUDENT||"";
+  out.goalSet=!!(L.goalSet||C.goalSet);
+  out.goal=out.goalSet?(L.goalSet?(L.goal||10):(C.goal||10)):(C.goal||L.goal||10);
+  out.learnedIds=uniqArr((L.learnedIds||[]).concat(C.learnedIds||[]));
+  out.wrong=mergeWrong(L.wrong,C.wrong);
+  if(BIO_HAS_SENT)out.wrongSent=mergeWrong(L.wrongSent,C.wrongSent);
+  out.history=mergeHistory(L.history,C.history);
+  out.sessions=mergeSessions(L.sessions,C.sessions);
+
+  var ld=L.day||"",cd=C.day||"";
+  out.day=ld>cd?ld:cd;
+  if(ld&&cd&&ld!==cd){ if(ld<cd)foldDay(out,ld,L); else foldDay(out,cd,C); }
+
+  /* 当天的 todayIds / quizToday 只在同一天才合并；跨天则跟随较晚那一天，
+     较旧那天的数据已经在上面落进 history 了，不会丢也不会混算 */
+  if(ld===cd){
+    out.todayIds=uniqArr((L.todayIds||[]).concat(C.todayIds||[]));
+    out.quizToday=Math.max(L.quizToday||0,C.quizToday||0);
+    out.quizTodayC=Math.max(L.quizTodayC||0,C.quizTodayC||0);
+  }else if(ld>cd){
+    out.todayIds=(L.todayIds||[]).slice();
+    out.quizToday=L.quizToday||0;out.quizTodayC=L.quizTodayC||0;
+  }else{
+    out.todayIds=(C.todayIds||[]).slice();
+    out.quizToday=C.quizToday||0;out.quizTodayC=C.quizTodayC||0;
+  }
+
+  /* 累计量取大：宁可少算，绝不多算 */
+  out.quizTotal=Math.max(L.quizTotal||0,C.quizTotal||0);
+  out.quizTotalC=Math.max(L.quizTotalC||0,C.quizTotalC||0);
+  if(out.quizTotalC>out.quizTotal)out.quizTotalC=out.quizTotal;
+  if(out.quizTodayC>out.quizToday)out.quizTodayC=out.quizToday;
+
+  /* 历史峰值：老版本只推数字不推 id，learnedIds 已无法还原，用它作为展示下限 */
+  out.legacyPeak=Math.max(L.legacyPeak||0,C.legacyPeak||0,C.totalLearned||0,L.totalLearned||0,out.learnedIds.length);
+  out.updated=new Date().toISOString();
+  return out;
+}
+
+function bioBody(p){
+  var b={v:2,name:BIO_STUDENT,updated:new Date().toISOString(),goal:p.goal,goalSet:!!p.goalSet,
+    day:p.day||"",
+    learnedToday:(p.todayIds||[]).length,quizToday:p.quizToday||0,quizCorrectToday:p.quizTodayC||0,
+    totalLearned:Math.max(p.legacyPeak||0,(p.learnedIds||[]).length),
+    legacyPeak:p.legacyPeak||0,
+    totalQuiz:p.quizTotal||0,totalQuizCorrect:Math.min(p.quizTotalC||0,p.quizTotal||0),
+    learnedIds:p.learnedIds||[],todayIds:p.todayIds||[],
+    wrong:p.wrong||[],
+    history:p.history||[],sessions:p.sessions||[]};
+  if(BIO_HAS_SENT)b.wrongSent=p.wrongSent||[];
+  return b;
+}
+
 function bioSetSync(mode,label){
   var el=document.getElementById("bioSyncB");if(!el)return;
   el.className="bio-sync"+(mode==="off"?" off":"");
@@ -872,40 +1075,145 @@ function bioSetSync(mode,label){
 function gPending(){try{return localStorage.getItem(K_PENDING)==="1";}catch(e){return false;}}
 function bioQueuePending(){try{localStorage.setItem(K_PENDING,"1");}catch(e){}}
 function bioClearPending(){try{localStorage.removeItem(K_PENDING);}catch(e){}}
-function bioPushNow(){
-  if(bioSyncBusy)return;
-  if(!BIO_STUDENT)return;
-  if(BIO_CFG.token==="__BIO_TOKEN__"){bioSetSync("off","未设置");return;}
-  bioSyncBusy=true;
+
+/* 单次同步：GET 云端 → 与本地合并 → PUT 回写；409/422 说明有并发写，重取一次再试 */
+function bioSyncDo(attempt){
   var p=newDay();
-  var slug=encodeURIComponent(BIO_STUDENT);
-  var path=BIO_CFG.folder+"/"+slug+".json";
+  if(!p.name)p.name=BIO_STUDENT;
+  var path=BIO_CFG.folder+"/"+encodeURIComponent(BIO_STUDENT)+".json";
   var url="https://api.github.com/repos/"+BIO_CFG.owner+"/"+BIO_CFG.repo+"/contents/"+path;
-  var body={name:BIO_STUDENT,updated:new Date().toISOString(),goal:p.goal,
-    learnedToday:p.todayIds.length,quizToday:p.quizToday,quizCorrectToday:p.quizTodayC,
-    totalLearned:p.learnedIds.length,totalQuiz:p.quizTotal,totalQuizCorrect:p.quizTotalC,
-    wrong:p.wrong,wrongSent:p.wrongSent,history:p.history};
-  var payload={message:"sync "+BIO_STUDENT,content:btoa(unescape(encodeURIComponent(JSON.stringify(body))))};
-  fetch(url,{headers:{Authorization:"Bearer "+BIO_CFG.token,"Accept":"application/vnd.github+json"}})
-    .then(function(r){return r.json().then(function(j){return{status:r.status,j:j};});})
+  var H={Authorization:"Bearer "+BIO_CFG.token,"Accept":"application/vnd.github+json"};
+  return fetch(url,{headers:H})
+    .then(function(r){return r.json().catch(function(){return{};}).then(function(j){return{status:r.status,j:j};});})
     .then(function(res){
-      if(res.status===200&&res.j.sha)payload.sha=res.j.sha;
-      return fetch(url,{method:"PUT",headers:{Authorization:"Bearer "+BIO_CFG.token,"Accept":"application/vnd.github+json"},body:JSON.stringify(payload)});
+      var cloud=null,sha=null;
+      if(res.status===200&&res.j&&res.j.content){
+        sha=res.j.sha;
+        try{cloud=JSON.parse(b64dec(res.j.content));}catch(e){cloud=null;}
+      }
+      var merged=bioMerge(gP(),cloud);
+      if(!cloud){merged.name=BIO_STUDENT;}
+      sP(merged);
+      var payload={message:"sync "+BIO_STUDENT,content:b64enc(JSON.stringify(bioBody(merged)))};
+      if(sha)payload.sha=sha;
+      return fetch(url,{method:"PUT",headers:H,body:JSON.stringify(payload)});
     })
     .then(function(r){
-      bioSyncBusy=false;
-      if(r.ok){bioSetSync("on","已同步");bioClearPending();}
-      else{bioSetSync("off","同步失败");bioQueuePending();}
-    })
-    .catch(function(){bioSyncBusy=false;bioSetSync("off","未连接");bioQueuePending();});
+      if((r.status===409||r.status===422)&&attempt<2){
+        return new Promise(function(done){setTimeout(done,500);}).then(function(){return bioSyncDo(attempt+1);});
+      }
+      return r;
+    });
 }
 
+function bioSync(){
+  if(bioSyncBusy){bioDirty=true;return;}
+  if(!BIO_STUDENT)return;
+  if(BIO_CFG.token==="__BIO_TOKEN__"){bioSetSync("off","未设置");return;}
+  if(navigator.onLine===false){bioSetSync("off","离线");bioQueuePending();return;}
+  bioSyncBusy=true;bioSetSync("on","同步中…");
+  bioSyncDo(0).then(function(r){
+    bioSyncBusy=false;
+    if(r&&r.ok){bioSetSync("on","已同步");bioClearPending();}
+    else{bioSetSync("off","同步失败");bioQueuePending();}
+    /* 刚才是从云端补回的进度，首页要重画一次；背词/测验进行中不打断 */
+    if(!bmStudy&&!bmQuiz&&BIO_STUDENT)renderHome();
+    if(bioDirty){bioDirty=false;setTimeout(bioSync,800);}
+  }).catch(function(){
+    bioSyncBusy=false;bioSetSync("off","未连接");bioQueuePending();
+    if(bioDirty){bioDirty=false;setTimeout(bioSync,1500);}
+  });
+}
+
+/* 背词过程中也定期把进度送回云端：背到一半换设备/清缓存也不会丢 */
+var bioSyncTimer=null;
+function bioSyncSoon(){
+  if(bioSyncTimer)clearTimeout(bioSyncTimer);
+  bioSyncTimer=setTimeout(function(){bioSyncTimer=null;bioSync();},8000);
+}
+
+/* ======= 每次背诵的 session 与时长 ======= */
+/* 时长只在页面可见时累加，切到后台不计；单次上限 2 小时，短于 5 秒不计 */
+var bmSess=null;
+function sessTick(){
+  if(!bmSess)return;
+  var now=Date.now();
+  if(document.visibilityState==="visible"){
+    var d=(now-bmSess.last)/1000;
+    if(d>0&&d<600)bmSess.sec+=d;
+  }
+  bmSess.last=now;
+  if(bmSess.sec>7200)bmSess.sec=7200;
+}
+function sessStart(k){
+  sessFlush();
+  bmSess={t:Date.now(),d:tStr(),k:k,sec:0,last:Date.now(),l:0,q:0,qc:0};
+}
+function sessFlush(){
+  if(!bmSess)return;
+  sessTick();
+  var s=bmSess;bmSess=null;
+  var sec=Math.round(s.sec);
+  if(sec<5)return;
+  var p=newDay();
+  if(!(p.sessions instanceof Array))p.sessions=[];
+  p.sessions.push({t:s.t,d:s.d,k:s.k,sec:sec,l:s.l||0,q:s.q||0,qc:s.qc||0});
+  if(p.sessions.length>300)p.sessions=p.sessions.slice(p.sessions.length-300);
+  sP(p);
+}
+function sessQuiz(ok){if(bmSess){bmSess.q=(bmSess.q||0)+1;if(ok)bmSess.qc=(bmSess.qc||0)+1;}}
+function sessKnown(n){if(bmSess)bmSess.l=n||0;}
+
+/* 某天的秒数：history 里已落账就用 sc，否则按当天 sessions 累加（两者不重复计） */
+function daySec(p,d){
+  var sc=0,found=false;
+  (p.history||[]).forEach(function(e){if(e&&e.d===d){found=true;sc=e.sc||0;}});
+  if(found&&sc>0)return sc;
+  var t=0;(p.sessions||[]).forEach(function(e){if(e&&e.d===d)t+=e.sec||0;});
+  return t;
+}
+function durToday(p){
+  var today=p.day||tStr();
+  var t=daySec(p,today);
+  if(bmSess&&bmSess.d===today){sessTick();t+=Math.round(bmSess.sec);}
+  return t;
+}
+function durTotal(p){
+  var m={};(p.sessions||[]).forEach(function(e){if(e&&e.d)m[e.d]=(m[e.d]||0)+(e.sec||0);});
+  var t=0,seen={};
+  (p.history||[]).forEach(function(e){
+    if(!e||!e.d)return;
+    seen[e.d]=1;
+    t+=((e.sc||0)>0?(e.sc||0):(m[e.d]||0));
+  });
+  for(var d in m){if(!seen[d])t+=m[d];}
+  if(bmSess){sessTick();if(!seen[bmSess.d])t+=Math.round(bmSess.sec);}
+  return t;
+}
+function fmtDur(x){
+  x=Math.round(x||0);
+  if(x<=0)return "0分";
+  if(x<60)return x+"秒";
+  var m=Math.floor(x/60),hh=Math.floor(m/60);m=m%60;
+  return hh?(hh+"小时"+(m?m+"分":"")):(m+"分");
+}
+
+/* 后台闲置超过 10 分钟自动结束本次 session，避免关掉页面时丢掉时间 */
+setInterval(function(){
+  if(!bmSess)return;
+  if(document.visibilityState==="visible")sessTick();
+  else if((Date.now()-bmSess.last)/1000>600)sessFlush();
+},30000);
+document.addEventListener("visibilitychange",function(){if(bmSess)sessTick();});
+window.addEventListener("pagehide",function(){sessFlush();});
+
 /* ======= 启动 ======= */
-renderHome();
 bioAskName();
-bioPushNow();/* 打开页面自动补推未同步记录 */
-setTimeout(function(){if(gPending())bioPushNow();},4000);/* 首次失败 4 秒后重试 */
-setTimeout(function(){if(gPending())bioPushNow();},12000);/* 再失败 12 秒后再试 */
+renderHome();
+bioSync();
+setTimeout(function(){if(gPending())bioSync();},4000);
+setTimeout(function(){if(gPending())bioSync();},12000);
+
 </script>
 </body>
 </html>
